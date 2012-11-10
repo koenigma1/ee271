@@ -241,7 +241,7 @@ int rastBBox_stest_fix( u_Poly< long , ushort >& poly,
   /
   */
 
-
+  
 
   int result = 0 ; // Default to miss state
 
@@ -249,24 +249,34 @@ int rastBBox_stest_fix( u_Poly< long , ushort >& poly,
   ///// Sample Test Function Goes Here
   /////
 
-  ///// PLACE YOUR CODE HERE
+  if (poly.vertices != 3) {
+	abort_("Quadrilaterals are not handled yet\n");
+  }  
   
+  // shift vertices such that sample is origin
+  long v0_x = poly.v[0].x[0] - s_x;
+  long v0_y = poly.v[0].x[1] - s_y;
+  long v1_x = poly.v[1].x[0] - s_x;
+  long v1_y = poly.v[1].x[1] - s_y;
+  long v2_x = poly.v[2].x[0] - s_x;
+  long v2_y = poly.v[2].x[1] - s_y;
+
+  // Distance of origin shifted edge
+  long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
+  long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
+  long dist2 = v2_x * v0_y - v0_x * v2_y; // 2-0 edge
+
+  // Test if origin is on right side of shifted edge
+  int b0 = dist0 <= 0;
+  int b1 = dist1 < 0;
+  int b2 = dist2 <= 0;
   
-  
-  
-  
-  
-  
-  
-  
-  
-  
-  
+  // Triangle min terms with no culling
+  result = ( b0 && b1 && b2 ) || ( !b0 && !b1 && !b2 );
 
   /////
   ///// Sample Test Function Goes Here
   /////
-
   
   return (result-1); //Return 0 if hit, otherwise return -1
 }
