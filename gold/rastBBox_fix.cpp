@@ -83,6 +83,7 @@ void rastBBox_uPoly_fix( u_Poly< long , ushort >& poly,
 
 }
 
+
 void rastBBox_bbox_fix( u_Poly< long , ushort >& poly , 
 			       long& ll_x,
 			       long& ll_y,
@@ -160,15 +161,50 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
   ///// Bounding Box Function Goes Here
   ///// 
   
-  ///// PLACE YOUR CODE HERE
+	#define _FLOOR_MASK(FRAC_RVAL)  ~(FRAC_RVAL - 1)
+	#define _FLOOR_SS(SS) (SS & _FLOOR_MASK(r_val)) 
+	#define _MIN_VAL(X1,X2) (X1 < X2) ? X1 : X2
+	#define _MIN_PER_AXIS(X1,X2,X3,X4) ( _MIN_VAL(X1,X2) < _MIN_VAL(X3,X4)) ? _MIN_VAL(X1,X2) : _MIN_VAL(X3,X4)
+	#define _MAX_VAL(X1,X2) (X1 > X2) ? X1 : X2
+	#define _MAX_PER_AXIS(X1,X2,X3,X4) ( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4)
 
+	printf("Creating bounding box\n");	
+	// Are we dealing with non zero 4th vertices on triangles?
+	//assert(!(poly.v[3].x[0] || poly.v[3].x[1] || poly.v[3].x[2] && (poly.vertices==3)));   
 
-  
-  
-  
-  
-  
+	// Calculate a clamped BBox and floor the fixed point result
+	if (poly.vertices == 3) {	
+		ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+  	ur_x = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+  	ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+  	ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+	} else {
+		abort_("Quadrilaterals are not handled yet\n");
+	}
 
+	// Clip BBox to visible screen space
+	printf("Screen dimensions:  %ld ht by %ld wd \n", screen_h>> r_shift, screen_w>> r_shift);
+	printf("Partial BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+	ur_x = _MIN_VAL(ur_x, screen_w);
+	ur_y = _MIN_VAL(ur_y, screen_h);
+	ll_x = _MAX_VAL(ll_x, 0);
+	ll_y = _MAX_VAL(ll_y, 0);
+	printf("Poly: \n");
+	for(int i=0; i<3; i++) {
+					printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
+	}
+	printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
+	printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+	printf("Out of bounding box\n");	
+
+	#undef _FLOOR_SS
+	#undef _FLOOR_MASK
+	#undef _MIN_VAL
+	#undef _MIN_PER_AXIS 
+	#undef _MAX_VAL
+	#undef _MAX_PER_AXIS 
+  
+	
   /////
   ///// Bounding Box Function Goes Here
   ///// 
