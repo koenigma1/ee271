@@ -151,16 +151,9 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
   /   additionally it should be noted that whether a poly is 
   /   a quad or triangle can be determined by examing poly.vertices
   */
-
-  ur_x = 0 ;
-  ur_y = 0 ;
-  ll_x = 0 ;
-  ll_y = 0 ;
-
-  /////
-  ///// Bounding Box Function Goes Here
-  ///// 
-  
+	
+	int i;
+	
 	#define _FLOOR_MASK(FRAC_RVAL)  ~(FRAC_RVAL - 1)
 	#define _FLOOR_SS(SS) (SS & _FLOOR_MASK(r_val)) 
 	#define _MIN_VAL(X1,X2) (X1 < X2) ? X1 : X2
@@ -172,6 +165,7 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 	// Are we dealing with non zero 4th vertices on triangles?
 	//assert(!(poly.v[3].x[0] || poly.v[3].x[1] || poly.v[3].x[2] && (poly.vertices==3)));   
 
+	valid = 0;
 	// Calculate a clamped BBox and floor the fixed point result
 	if (poly.vertices == 3) {	
 		ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
@@ -190,9 +184,10 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 	ll_x = _MAX_VAL(ll_x, 0);
 	ll_y = _MAX_VAL(ll_y, 0);
 	printf("Poly: \n");
-	for(int i=0; i<3; i++) {
+	for(i=0; i<3; i++) {
 					printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
 	}
+	valid=1;
 	printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
 	printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
 	printf("Out of bounding box\n");	
@@ -203,13 +198,8 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 	#undef _MIN_PER_AXIS 
 	#undef _MAX_VAL
 	#undef _MAX_PER_AXIS 
+	return; 
   
-	
-  /////
-  ///// Bounding Box Function Goes Here
-  ///// 
-
-
 }
 
 
