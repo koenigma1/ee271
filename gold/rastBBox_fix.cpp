@@ -160,12 +160,20 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 	#define _MIN_PER_AXIS(X1,X2,X3,X4) ( _MIN_VAL(X1,X2) < _MIN_VAL(X3,X4)) ? _MIN_VAL(X1,X2) : _MIN_VAL(X3,X4)
 	#define _MAX_VAL(X1,X2) (X1 > X2) ? X1 : X2
 	#define _MAX_PER_AXIS(X1,X2,X3,X4) ( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4)
+	#define _VALID_COORD(VERTICE, AXIS, PITCH) (poly.v[VERTICE].x[AXIS] > 0 && poly.v[VERTICE].x[AXIS] < PITCH)
 
-	printf("Creating bounding box\n");	
-	// Are we dealing with non zero 4th vertices on triangles?
-	//assert(!(poly.v[3].x[0] || poly.v[3].x[1] || poly.v[3].x[2] && (poly.vertices==3)));   
-
+	// printf("Creating bounding box\n");	
+	
+	// Validate that the polygon lays within the screen
 	valid = 0;
+	// If at least 1 point is valid we are good
+	for(i = 0; i < poly.vertices; i++) {
+		if( _VALID_COORD(i, 0, screen_w) && _VALID_COORD(i, 1, screen_h))
+			valid = 1;
+	}
+	if (!valid)
+					return;
+
 	// Calculate a clamped BBox and floor the fixed point result
 	if (poly.vertices == 3) {	
 		ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
@@ -177,20 +185,21 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 	}
 
 	// Clip BBox to visible screen space
-	printf("Screen dimensions:  %ld ht by %ld wd \n", screen_h>> r_shift, screen_w>> r_shift);
-	printf("Partial BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+	// printf("Screen dimensions:  %ld ht by %ld wd \n", screen_h>> r_shift, screen_w>> r_shift);
+	// printf("Partial BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
 	ur_x = _MIN_VAL(ur_x, screen_w);
 	ur_y = _MIN_VAL(ur_y, screen_h);
 	ll_x = _MAX_VAL(ll_x, 0);
 	ll_y = _MAX_VAL(ll_y, 0);
-	printf("Poly: \n");
-	for(i=0; i<3; i++) {
-					printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
-	}
-	valid=1;
-	printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
-	printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
-	printf("Out of bounding box\n");	
+	
+	// DEBUG Prints 
+	// printf("Poly: \n");
+	// for(i=0; i<3; i++) {
+	//				printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
+	// }
+	// printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
+	// printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+	// printf("Out of bounding box\n");	
 
 	#undef _FLOOR_SS
 	#undef _FLOOR_MASK
