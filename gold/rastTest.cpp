@@ -161,10 +161,10 @@ bool testRast()
 int main(int argc, char **argv)
 {
 
-  //if( ! testRast() )
-  //{
-  //  abort_("Test Failed");
-  //}
+  if( ! testRast() )
+  {
+    abort_("Test Failed");
+  }
 
   if (argc != 3)
   {
