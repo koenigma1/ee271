@@ -53,8 +53,62 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
   //
   // note that bool,true, and false are not in c
 
+        int i;
 
-			  
+        #define _FLOOR_MASK  ~((1 << (r_shift - ss_w_lg2)) - 1)
+        #define _FLOOR_SS(SS) (SS & _FLOOR_MASK)
+        #define _CEIL_SS(SS)  _FLOOR_SS(SS - 1 + (1 << (r_shift - ss_w_lg2)))
+        #define _MIN_VAL(X1,X2) ((X1 < X2) ? X1 : X2)
+        #define _MIN_PER_AXIS(X1,X2,X3,X4) (( _MIN_VAL(X1,X2) < _MIN_VAL(X3,X4)) ? _MIN_VAL(X1,X2) : _MIN_VAL(X3,X4))
+        #define _MAX_VAL(X1,X2) ((X1 > X2) ? X1 : X2)
+        #define _MAX_PER_AXIS(X1,X2,X3,X4) (( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4))
+        #define _VALID_COORD(VERTICE, AXIS, PITCH) (poly.v[VERTICE].x[AXIS] > 0 && poly.v[VERTICE].x[AXIS] < PITCH)
+
+        // printf("Creating bounding box\n");
+
+        // Validate that the polygon lays within the screen
+        valid = 0;
+        // If at least 1 point is valid we are good
+        for(i = 0; i < poly.vertices; i++) {
+                if( _VALID_COORD(i, 0, screen_w) && _VALID_COORD(i, 1, screen_h))
+                        valid = 1;
+        }
+        if (!valid)
+                                        return;
+
+        // Calculate a clamped BBox and floor the fixed point result
+        if (poly.vertices == 3) {
+          ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+          ur_x = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+          ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+          ur_y = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+        } else {
+                abort_("Quadrilaterals are not handled yet\n");
+        }
+
+      // Clip BBox to visible screen space
+        // printf("Screen dimensions:  %ld ht by %ld wd \n", screen_h>> r_shift, screen_w>> r_shift);
+        // printf("Partial BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+        ur_x = _MIN_VAL(ur_x, screen_w);
+        ur_y = _MIN_VAL(ur_y, screen_h);
+        ll_x = _MAX_VAL(ll_x, 0);
+        ll_y = _MAX_VAL(ll_y, 0);
+
+        // DEBUG Prints
+        // printf("Poly: \n");
+        // for(i=0; i<3; i++) {
+        //                              printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
+        // }
+        // printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
+        // printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+        // printf("Out of bounding box\n");
+
+        #undef _FLOOR_SS
+        #undef _FLOOR_MASK
+        #undef _MIN_VAL
+        #undef _MIN_PER_AXIS
+        #undef _MAX_VAL
+        #undef _MAX_PER_AXIS
 
   //
   //Copy Past C++ Bounding Box Function ****END****
@@ -144,6 +198,42 @@ int rastBBox_stest_check( int   v0_x,      //uPoly
 
   
 
+  int result = 0 ; // Default to miss state
+
+  /////
+  ///// Sample Test Function Goes Here
+  /////
+
+  if (poly.vertices != 3) {
+        abort_("Quadrilaterals are not handled yet\n");
+  }
+
+  // shift vertices such that sample is origin
+  v0_x = poly.v[0].x[0] - s_x;
+  v0_y = poly.v[0].x[1] - s_y;
+  v1_x = poly.v[1].x[0] - s_x;
+  v1_y = poly.v[1].x[1] - s_y;
+  v2_x = poly.v[2].x[0] - s_x;
+  v2_y = poly.v[2].x[1] - s_y;
+
+  // Distance of origin shifted edge
+  long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
+  long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
+  long dist2 = v2_x * v0_y - v0_x * v2_y; // 2-0 edge
+
+  // Test if origin is on right side of shifted edge
+  int b0 = dist0 <= 0;
+  int b1 = dist1 < 0;
+  int b2 = dist2 <= 0;
+
+  // Triangle min terms with culling
+  result = ( b0 && b1 && b2 );
+
+  /////
+  ///// Sample Test Function Goes Here
+  /////
+  //result = result-1; //Return 0 if hit, otherwise return -1
+
   //
   //Copy Past C++ Sample Test Function ****END****
   //
@@ -195,13 +285,62 @@ int rastBBox_check( int   v0_x,      //uPoly
   //
   // note that bool,true, and false are not in c
 
+        int i;
 
-  
-  
-  
-  
-  
-  
+        #define _FLOOR_MASK  ~((1 << (r_shift - ss_w_lg2)) - 1)
+        #define _FLOOR_SS(SS) (SS & _FLOOR_MASK)
+        #define _CEIL_SS(SS)  _FLOOR_SS(SS - 1 + (1 << (r_shift - ss_w_lg2)))
+        #define _MIN_VAL(X1,X2) ((X1 < X2) ? X1 : X2)
+        #define _MIN_PER_AXIS(X1,X2,X3,X4) (( _MIN_VAL(X1,X2) < _MIN_VAL(X3,X4)) ? _MIN_VAL(X1,X2) : _MIN_VAL(X3,X4))
+        #define _MAX_VAL(X1,X2) ((X1 > X2) ? X1 : X2)
+        #define _MAX_PER_AXIS(X1,X2,X3,X4) (( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4))
+        #define _VALID_COORD(VERTICE, AXIS, PITCH) (poly.v[VERTICE].x[AXIS] > 0 && poly.v[VERTICE].x[AXIS] < PITCH)
+
+        // printf("Creating bounding box\n");
+
+        // Validate that the polygon lays within the screen
+        valid = 0;
+        // If at least 1 point is valid we are good
+        for(i = 0; i < poly.vertices; i++) {
+                if( _VALID_COORD(i, 0, screen_w) && _VALID_COORD(i, 1, screen_h))
+                        valid = 1;
+        }
+        if (!valid)
+                                        return;
+
+        // Calculate a clamped BBox and floor the fixed point result
+        if (poly.vertices == 3) {
+          ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+          ur_x = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+          ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+          ur_y = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+        } else {
+                abort_("Quadrilaterals are not handled yet\n");
+        }
+
+      // Clip BBox to visible screen space
+        // printf("Screen dimensions:  %ld ht by %ld wd \n", screen_h>> r_shift, screen_w>> r_shift);
+        // printf("Partial BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+        ur_x = _MIN_VAL(ur_x, screen_w);
+        ur_y = _MIN_VAL(ur_y, screen_h);
+        ll_x = _MAX_VAL(ll_x, 0);
+        ll_y = _MAX_VAL(ll_y, 0);
+
+        // DEBUG Prints
+        // printf("Poly: \n");
+        // for(i=0; i<3; i++) {
+        //                              printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
+        // }
+        // printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
+        // printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
+        // printf("Out of bounding box\n");
+
+        #undef _FLOOR_SS
+        #undef _FLOOR_MASK
+        #undef _MIN_VAL
+        #undef _MIN_PER_AXIS
+        #undef _MAX_VAL
+        #undef _MAX_PER_AXIS
 
   //
   //Copy Past C++ Bounding Box Function ****END****
@@ -225,7 +364,45 @@ int rastBBox_check( int   v0_x,      //uPoly
       //Copy Past C++ Sample Test Function ****BEGIN****
       //
       // note that bool,true, and false are not in c
-      
+       
+
+  int result = 0 ; // Default to miss state
+
+  /////
+  ///// Sample Test Function Goes Here
+  /////
+
+  if (poly.vertices != 3) {
+        abort_("Quadrilaterals are not handled yet\n");
+  }
+
+  // shift vertices such that sample is origin
+  v0_x = poly.v[0].x[0] - s_x;
+  v0_y = poly.v[0].x[1] - s_y;
+  v1_x = poly.v[1].x[0] - s_x;
+  v1_y = poly.v[1].x[1] - s_y;
+  v2_x = poly.v[2].x[0] - s_x;
+  v2_y = poly.v[2].x[1] - s_y;
+
+  // Distance of origin shifted edge
+  long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
+  long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
+  long dist2 = v2_x * v0_y - v0_x * v2_y; // 2-0 edge
+
+  // Test if origin is on right side of shifted edge
+  int b0 = dist0 <= 0;
+  int b1 = dist1 < 0;
+  int b2 = dist2 <= 0;
+
+  // Triangle min terms with culling
+  result = ( b0 && b1 && b2 );
+
+  /////
+  ///// Sample Test Function Goes Here
+  /////
+  //result = result-1; //Return 0 if hit, otherwise return -1
+
+
 
 	  
 	  
