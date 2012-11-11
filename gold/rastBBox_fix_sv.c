@@ -226,7 +226,7 @@ int rastBBox_stest_check( int   v0_x,      //uPoly
   //
 
   //Check if Correct 
-  correct = result == check_hit ;
+  correct = (result == check_hit) ;
 
   return correct ;
 }
@@ -273,7 +273,7 @@ int rastBBox_check( int   v0_x,      //uPoly
   // note that bool,true, and false are not in c
 
         int i;
-				int vertices = (poly.q) 4:3; // used to be poly.vertices
+	int vertices = (poly.q) ? 4:3; // used to be poly.vertices
 
         #define _FLOOR_MASK  ~((1 << (r_shift - ss_w_lg2)) - 1)
         #define _FLOOR_SS(SS) (SS & _FLOOR_MASK)
@@ -342,7 +342,7 @@ int rastBBox_check( int   v0_x,      //uPoly
        
 
   int result = 0 ; // Default to miss state
-	int vertices = (poly.q) 4:3; // used to be poly.vertices
+  int vertices = (poly.q) ? 4:3; // used to be poly.vertices
 
   /////
   ///// Sample Test Function Goes Here
