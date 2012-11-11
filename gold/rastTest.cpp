@@ -33,17 +33,17 @@ bool testRast()
   int ss_w_lg2 = 2 ; // This is the log_2 ( sqrt( MSAA ) )  
 
   u_Poly< long , ushort > poly; //This is a micropolygon
-  poly.v[0].x[0] = 556 << ( r_shift - 2 ); //v0.x
-  poly.v[0].x[1] = 679 << ( r_shift - 2 ); //v0.y
+  poly.v[0].x[0] = 556 << ( r_shift - ss_w_lg2 ); //v0.x
+  poly.v[0].x[1] = 679 << ( r_shift - ss_w_lg2 ); //v0.y
 
-  poly.v[1].x[0] = 562 << ( r_shift - 2 ); //v1.x
-  poly.v[1].x[1] = 660 << ( r_shift - 2 ); //v1.y
+  poly.v[1].x[0] = 562 << ( r_shift - ss_w_lg2 ); //v1.x
+  poly.v[1].x[1] = 660 << ( r_shift - ss_w_lg2 ); //v1.y
 
-  poly.v[2].x[0] = 557 << ( r_shift - 2 ); //v2.x
-  poly.v[2].x[1] = 661 << ( r_shift - 2 ); //v2.y
+  poly.v[2].x[0] = 557 << ( r_shift - ss_w_lg2 ); //v2.x
+  poly.v[2].x[1] = 661 << ( r_shift - ss_w_lg2 ); //v2.y
 
-  poly.v[3].x[0] = 561 << ( r_shift - 2 ); //v3.x
-  poly.v[3].x[1] = 680 << ( r_shift - 2 ); //v.y
+  poly.v[3].x[0] = 561 << ( r_shift - ss_w_lg2 ); //v3.x
+  poly.v[3].x[1] = 680 << ( r_shift - ss_w_lg2 ); //v.y
 
   poly.vertices = 3; //The number of vertices
                      // Three is a triangle
@@ -70,18 +70,45 @@ bool testRast()
   if( ! valid ){
     abort_("Fail Test 1"); 
   }
-  if( ll_x != (556 << ( r_shift - 2 )) ){
+  if( ll_x != (556 << ( r_shift - ss_w_lg2 )) ){
     abort_("Fail Test 1"); 
   }
-  if( ll_y != (660 << ( r_shift - 2 )) ){
+  if( ll_y != (660 << ( r_shift - ss_w_lg2 )) ){
     abort_("Fail Test 1"); 
   }
-  if( ur_x != (562 << ( r_shift - 2 )) ){
+  if( ur_x != (562 << ( r_shift - ss_w_lg2 )) ){
     abort_("Fail Test 1"); 
   }
-  if( ur_y != (679 << ( r_shift - 2 )) ){
+  if( ur_y != (679 << ( r_shift - ss_w_lg2 )) ){
     abort_("Fail Test 1"); 
   }
+
+  // check some more conditions
+  poly.v[0].x[0] = (556 << ( r_shift - ss_w_lg2 )) - 1;
+  poly.v[0].x[1] = (679 << ( r_shift - ss_w_lg2 )) + 1;
+  poly.v[1].x[1] = (660 << ( r_shift - ss_w_lg2 )) + 1;
+  poly.v[1].x[0] = (562 << ( r_shift - ss_w_lg2 )) - 1;
+  rastBBox_bbox_fix(  poly, ll_x, ll_y, ur_x, ur_y, ss_w_lg2, 
+                      screen_w, screen_h, valid, r_shift, r_val);
+
+  if ( ll_x != (555 << ( r_shift - ss_w_lg2 )) ){
+    abort_("Fail Test 1: did not round down correctly");
+  }
+  if ( ur_y != (680 << ( r_shift - ss_w_lg2 )) ){
+    abort_("Fail Test 1: did not round up correctly");
+  }
+  if( ll_y != (660 << ( r_shift - ss_w_lg2 )) ){
+    abort_("Fail Test 1: did not round down correctly"); 
+  }
+  if( ur_x != (562 << ( r_shift - ss_w_lg2 )) ){
+    abort_("Fail Test 1: did not round up correctly"); 
+  }
+ 
+  // reset the values for later use
+  poly.v[0].x[0] = (556 << ( r_shift - ss_w_lg2 ));
+  poly.v[0].x[1] = (679 << ( r_shift - ss_w_lg2 ));
+  poly.v[1].x[1] = (660 << ( r_shift - ss_w_lg2 ));
+  poly.v[1].x[0] = (562 << ( r_shift - ss_w_lg2 ));
 
   printf( "\t\tPass Test 1\n");
 

@@ -51,8 +51,8 @@ void rastBBox_uPoly_fix( u_Poly< long , ushort >& poly,
   fragment f ;
 
   rastBBox_bbox_fix( poly, ll_x, ll_y, ur_x, ur_y, 
-		     z.ss_w_lg2, screen_w, screen_h, 
-		     valid, r_shift, r_val  );
+  		     z.ss_w_lg2, screen_w, screen_h, 
+  		     valid, r_shift, r_val  );
 
   //Iterate over Samples, Test if In uPoly
   for( s_x = ll_x ; s_x <= ur_x ; s_x += si ){
@@ -154,12 +154,13 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 	
 	int i;
 	
-	#define _FLOOR_MASK(FRAC_RVAL)  ~(FRAC_RVAL - 1)
-	#define _FLOOR_SS(SS) (SS & _FLOOR_MASK(r_val)) 
-	#define _MIN_VAL(X1,X2) (X1 < X2) ? X1 : X2
-	#define _MIN_PER_AXIS(X1,X2,X3,X4) ( _MIN_VAL(X1,X2) < _MIN_VAL(X3,X4)) ? _MIN_VAL(X1,X2) : _MIN_VAL(X3,X4)
-	#define _MAX_VAL(X1,X2) (X1 > X2) ? X1 : X2
-	#define _MAX_PER_AXIS(X1,X2,X3,X4) ( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4)
+	#define _FLOOR_MASK  ~((1 << (r_shift - ss_w_lg2)) - 1)
+	#define _FLOOR_SS(SS) (SS & _FLOOR_MASK) 
+        #define _CEIL_SS(SS)  _FLOOR_SS(SS - 1 + (1 << (r_shift - ss_w_lg2)))
+	#define _MIN_VAL(X1,X2) ((X1 < X2) ? X1 : X2)
+	#define _MIN_PER_AXIS(X1,X2,X3,X4) (( _MIN_VAL(X1,X2) < _MIN_VAL(X3,X4)) ? _MIN_VAL(X1,X2) : _MIN_VAL(X3,X4))
+	#define _MAX_VAL(X1,X2) ((X1 > X2) ? X1 : X2)
+	#define _MAX_PER_AXIS(X1,X2,X3,X4) (( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4))
 	#define _VALID_COORD(VERTICE, AXIS, PITCH) (poly.v[VERTICE].x[AXIS] > 0 && poly.v[VERTICE].x[AXIS] < PITCH)
 
 	// printf("Creating bounding box\n");	
@@ -175,11 +176,11 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 					return;
 
 	// Calculate a clamped BBox and floor the fixed point result
-	if (poly.vertices == 3) {	
-		ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
-  	ur_x = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
-  	ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
-  	ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+	if (poly.vertices == 3) {
+          ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+  	  ur_x = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+  	  ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+  	  ur_y = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
 	} else {
 		abort_("Quadrilaterals are not handled yet\n");
 	}
@@ -270,13 +271,12 @@ int rastBBox_stest_fix( u_Poly< long , ushort >& poly,
   int b1 = dist1 < 0;
   int b2 = dist2 <= 0;
   
-  // Triangle min terms with no culling
-  result = ( b0 && b1 && b2 ) || ( !b0 && !b1 && !b2 );
+  // Triangle min terms with culling
+  result = ( b0 && b1 && b2 );
 
   /////
   ///// Sample Test Function Goes Here
   /////
-  
   return (result-1); //Return 0 if hit, otherwise return -1
 }
 
