@@ -21,8 +21,12 @@ def run(dir):
     base = os.path.splitext(file)[0]
     ref = base + '_ref.ppm'
     ppm = os.path.split(base)[1] + '_golden.ppm'
-    print '*** checking results for %s' % base
-    os.system('diff %s %s' % (ppm, ref))
+    print '*** checking results for %s' % base,
+    status = os.system('diff %s %s > /dev/null' % (ppm, ref))
+    if status == 0:
+			print '*** PASSED'
+    else:
+			print '*** FAILED'
 
 
 if __name__ == '__main__':

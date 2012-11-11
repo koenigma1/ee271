@@ -54,7 +54,7 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
   // note that bool,true, and false are not in c
 
         int i;
-
+  			int vertices = (poly.q) ? 4:3; // used to be poly.vertices
         #define _FLOOR_MASK  ~((1 << (r_shift - ss_w_lg2)) - 1)
         #define _FLOOR_SS(SS) (SS & _FLOOR_MASK)
         #define _CEIL_SS(SS)  _FLOOR_SS(SS - 1 + (1 << (r_shift - ss_w_lg2)))
@@ -64,12 +64,10 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
         #define _MAX_PER_AXIS(X1,X2,X3,X4) (( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4))
         #define _VALID_COORD(VERTICE, AXIS, PITCH) (poly.v[VERTICE].x[AXIS] > 0 && poly.v[VERTICE].x[AXIS] < PITCH)
 
-        // printf("Creating bounding box\n");
-
         // Validate that the polygon lays within the screen
         valid = 0;
         // If at least 1 point is valid we are good
-        for(i = 0; i < poly.vertices; i++) {
+        for(i = 0; i < vertices; i++) {
                 if( _VALID_COORD(i, 0, screen_w) && _VALID_COORD(i, 1, screen_h))
                         valid = 1;
         }
@@ -77,7 +75,7 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
                                         return;
 
         // Calculate a clamped BBox and floor the fixed point result
-        if (poly.vertices == 3) {
+        if (vertices == 3) {
           ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
           ur_x = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
           ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
@@ -87,21 +85,10 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
         }
 
       // Clip BBox to visible screen space
-        // printf("Screen dimensions:  %ld ht by %ld wd \n", screen_h>> r_shift, screen_w>> r_shift);
-        // printf("Partial BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
         ur_x = _MIN_VAL(ur_x, screen_w);
         ur_y = _MIN_VAL(ur_y, screen_h);
         ll_x = _MAX_VAL(ll_x, 0);
         ll_y = _MAX_VAL(ll_y, 0);
-
-        // DEBUG Prints
-        // printf("Poly: \n");
-        // for(i=0; i<3; i++) {
-        //                              printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
-        // }
-        // printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
-        // printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
-        // printf("Out of bounding box\n");
 
         #undef _FLOOR_SS
         #undef _FLOOR_MASK
@@ -190,7 +177,6 @@ int rastBBox_stest_check( int   v0_x,      //uPoly
   poly.v[3].x[1] = v3_y;
   poly.q = q;
 
-
   //
   //Copy Past C++ Sample Test Function ****BEGIN****
   //
@@ -199,12 +185,13 @@ int rastBBox_stest_check( int   v0_x,      //uPoly
   
 
   int result = 0 ; // Default to miss state
+  int vertices = (poly.q) ? 4:3; // used to be poly.vertices
 
   /////
   ///// Sample Test Function Goes Here
   /////
 
-  if (poly.vertices != 3) {
+  if (vertices != 3) {
         abort_("Quadrilaterals are not handled yet\n");
   }
 
@@ -286,6 +273,7 @@ int rastBBox_check( int   v0_x,      //uPoly
   // note that bool,true, and false are not in c
 
         int i;
+				int vertices = (poly.q) 4:3; // used to be poly.vertices
 
         #define _FLOOR_MASK  ~((1 << (r_shift - ss_w_lg2)) - 1)
         #define _FLOOR_SS(SS) (SS & _FLOOR_MASK)
@@ -296,12 +284,10 @@ int rastBBox_check( int   v0_x,      //uPoly
         #define _MAX_PER_AXIS(X1,X2,X3,X4) (( _MAX_VAL(X1,X2) > _MAX_VAL(X3,X4)) ? _MAX_VAL(X1,X2) : _MAX_VAL(X3,X4))
         #define _VALID_COORD(VERTICE, AXIS, PITCH) (poly.v[VERTICE].x[AXIS] > 0 && poly.v[VERTICE].x[AXIS] < PITCH)
 
-        // printf("Creating bounding box\n");
-
         // Validate that the polygon lays within the screen
         valid = 0;
         // If at least 1 point is valid we are good
-        for(i = 0; i < poly.vertices; i++) {
+        for(i = 0; i < vertices; i++) {
                 if( _VALID_COORD(i, 0, screen_w) && _VALID_COORD(i, 1, screen_h))
                         valid = 1;
         }
@@ -309,7 +295,7 @@ int rastBBox_check( int   v0_x,      //uPoly
                                         return;
 
         // Calculate a clamped BBox and floor the fixed point result
-        if (poly.vertices == 3) {
+        if (vertices == 3) {
           ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
           ur_x = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
           ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
@@ -319,21 +305,10 @@ int rastBBox_check( int   v0_x,      //uPoly
         }
 
       // Clip BBox to visible screen space
-        // printf("Screen dimensions:  %ld ht by %ld wd \n", screen_h>> r_shift, screen_w>> r_shift);
-        // printf("Partial BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
         ur_x = _MIN_VAL(ur_x, screen_w);
         ur_y = _MIN_VAL(ur_y, screen_h);
         ll_x = _MAX_VAL(ll_x, 0);
         ll_y = _MAX_VAL(ll_y, 0);
-
-        // DEBUG Prints
-        // printf("Poly: \n");
-        // for(i=0; i<3; i++) {
-        //                              printf("v[%d] - (%ld,%ld)\n", i, poly.v[i].x[0]>>r_shift, poly.v[i].x[1]>>r_shift);
-        // }
-        // printf("Unshifted BBox defined by (%lx,%lx),(%lx,%lx)\n", ll_x, ll_y , ur_x, ur_y);
-        // printf("BBox defined by (%ld,%ld),(%ld,%ld)\n", ll_x>>r_shift, ll_y >>r_shift, ur_x>>r_shift,ur_y>>r_shift);
-        // printf("Out of bounding box\n");
 
         #undef _FLOOR_SS
         #undef _FLOOR_MASK
@@ -367,12 +342,13 @@ int rastBBox_check( int   v0_x,      //uPoly
        
 
   int result = 0 ; // Default to miss state
+	int vertices = (poly.q) 4:3; // used to be poly.vertices
 
   /////
   ///// Sample Test Function Goes Here
   /////
 
-  if (poly.vertices != 3) {
+  if (vertices != 3) {
         abort_("Quadrilaterals are not handled yet\n");
   }
 
