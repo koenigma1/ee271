@@ -259,14 +259,16 @@ module `mname()`
    // understanding the signals here
    
    ////// PLACE YOUR CODE HERE
-
- 
-
-
-
-
-
-
+	
+	assign next_up_samp_R14S = '{sample_R14S[1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R14S[0][0]}; 
+	assign next_rt_samp_R14S = '{sample_R14S[1], sample_R14S[0][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+ 	assign at_right_edg_R14H =  (sample_R14S[0] == box_R14S[1][0]); // test sample_x == ur_x
+ 	assign at_top_edg_R14H	=  (sample_R14S[1] == box_R14S[1][1]);		// test sample_y == ur_y
+	assign at_end_box_R14H = (sample_R14S[0] == box_R14S[1][0] && sample_R14S[1] == box_R14S[1][1]); // test if up right corner is reached
+ 	//assign at_right_edg_R14H = (validPoly_R13H) ? ( sample_R14S[0] == box_R13S[1][0]) : 1'b0; // test sample_x == ur_x
+ 	//assign at_top_edg_R14H	= (validPoly_R13H) ? (sample_R14S[1] == box_R13S[1][1]) : 1'b0;		// test sample_y == ur_y
+	//assign at_end_box_R14H = (validPoly_R13H) ? (at_right_edg_R14H == at_top_edg_R14H) : 1'b0; // test if up right corner is reached
+	
    
    //////
    ////// Then complete the following combinational logic defining the
@@ -278,24 +280,28 @@ module `mname()`
    always_comb begin
       unique case( state_R14H )
         ( WAIT_STATE ): begin
-	   next_sample_R14S    =  
-	   next_validSamp_R14H =
-	   next_isQuad_R14H    =
-	   next_state_R14H     =
-	   next_poly_R14S      =
-	   next_color_R14U     = 
-	   next_box_R14S       =
-	   next_halt_RnnnnL    = 
+	   next_sample_R14S    = '{box_R13S[0][1], box_R13S[0][0]}; 
+	   next_validSamp_R14H = 1'b0;
+	   next_isQuad_R14H    = isQuad_R13H;
+	   next_state_R14H     = (validPoly_R13H || box_R14S[0] != sample_R14S ) ? TEST_STATE : WAIT_STATE;
+	   next_poly_R14S      = poly_R13S;
+	   next_color_R14U     = color_R13U;
+	   next_box_R14S       = box_R13S;
+	   next_halt_RnnnnL    = (validPoly_R13H) ? 1'b0 : 1'b1;
 	end
 	( TEST_STATE ): begin
-	   next_sample_R14S    = 
-	   next_validSamp_R14H = 
-	   next_isQuad_R14H    = 
-	   next_state_R14H     =  
-	   next_poly_R14S      =  
-	   next_color_R14U     =  
-	   next_box_R14S       =  
-	   next_halt_RnnnnL    =   
+		if (at_end_box_R14H)
+			next_sample_R14S =  box_R14S[0] ;
+		else
+			next_sample_R14S = (at_right_edg_R14H) ? next_up_samp_R14S : next_rt_samp_R14S; 
+	  
+		next_validSamp_R14H =  1'b1;
+	   next_isQuad_R14H    = isQuad_R13H;
+	   next_state_R14H     = (validPoly_R13H & ~at_end_box_R14H) ? TEST_STATE : WAIT_STATE;
+	   next_poly_R14S      = poly_R13S;
+	   next_color_R14U     = color_R13U;
+	   next_box_R14S       = box_R14S;
+	   next_halt_RnnnnL    = (at_end_box_R14H) ? 1'b1 : 1'b0; 
 	end      
       endcase // case ( state_R14H )
       
@@ -317,10 +323,10 @@ module `mname()`
    endproperty
 
    //Check that Proposed Sample is in BBox
-   assert property( rb_lt( rst, next_sample_R14S[0] , next_box_R14S[1][0] , next_validSamp_R14H ));
-   assert property( rb_lt( rst, next_sample_R14S[1] , next_box_R14S[1][1] , next_validSamp_R14H ));
-   assert property( rb_lt( rst, next_box_R14S[0][0] , next_sample_R14S[0] , next_validSamp_R14H ));
-   assert property( rb_lt( rst, next_box_R14S[0][1] , next_sample_R14S[1] , next_validSamp_R14H ));
+   assert property( rb_lt( rst, next_sample_R14S[0] , next_box_R14S[1][0] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_sample_R14S[0] , next_box_R14S[1][0], next_validSamp_R14H); 
+   assert property( rb_lt( rst, next_sample_R14S[1] , next_box_R14S[1][1] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_sample_R14S[1] , next_box_R14S[1][1], next_validSamp_R14H);
+   assert property( rb_lt( rst, next_box_R14S[0][0] , next_sample_R14S[0] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_box_R14S[0][0] , next_sample_R14S[0], next_validSamp_R14H);
+   assert property( rb_lt( rst, next_box_R14S[0][1] , next_sample_R14S[1] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_box_R14S[0][1] , next_sample_R14S[1], next_validSamp_R14H);
    //Check that Proposed Sample is in BBox
 
    //Error Checking Assertions
