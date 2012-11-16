@@ -283,7 +283,7 @@ module `mname()`
 	   next_sample_R14S    = '{box_R13S[0][1], box_R13S[0][0]}; 
 	   next_validSamp_R14H = 1'b0;
 	   next_isQuad_R14H    = isQuad_R13H;
-	   next_state_R14H     = (validPoly_R13H || box_R14S[0] != sample_R14S ) ? TEST_STATE : WAIT_STATE;
+	   next_state_R14H     = (validPoly_R13H) ? TEST_STATE : WAIT_STATE;
 	   next_poly_R14S      = poly_R13S;
 	   next_color_R14U     = color_R13U;
 	   next_box_R14S       = box_R13S;
@@ -296,10 +296,10 @@ module `mname()`
 			next_sample_R14S = (at_right_edg_R14H) ? next_up_samp_R14S : next_rt_samp_R14S; 
 	  
 		next_validSamp_R14H =  1'b1;
-	   next_isQuad_R14H    = isQuad_R13H;
+	   next_isQuad_R14H    = isQuad_R14H;
 	   next_state_R14H     = (validPoly_R13H & ~at_end_box_R14H) ? TEST_STATE : WAIT_STATE;
-	   next_poly_R14S      = poly_R13S;
-	   next_color_R14U     = color_R13U;
+	   next_poly_R14S      = poly_R14S;
+	   next_color_R14U     = color_R14U;
 	   next_box_R14S       = box_R14S;
 	   next_halt_RnnnnL    = (at_end_box_R14H) ? 1'b1 : 1'b0; 
 	end      
