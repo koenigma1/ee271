@@ -34,19 +34,19 @@ def run(dir):
     ref = base + '_ref.ppm'
     ppm = os.path.split(base)[1] + '_hw.ppm'
     print '*** checking results for %s' % base,
-    status = os.system('echo *** checking results for %s >> results.log' % base)
+    status = os.system('echo "*** checking results for %s" >> results.log' % base)
     status = os.system('diff %s %s > /dev/null' % (ppm, ref))
     if status == 0:
 			print '*** PASSED'
-    		os.system('*** PASSED  >> results.log')
+    		os.system('echo "*** PASSED"  >> results.log')
     else:
 			print '*** FAILED'
-    		os.system('*** FAILED >> results.log')
+    		os.system('echo "*** FAILED" >> results.log')
 
 
 if __name__ == '__main__':
   os.system('make clean comp')
   run(sys.argv[1])
   os.system('tar -czv -f hw_ppm.tar.gz *hw.ppm') 
-  os.system('mutt -s "test_results" -a ppm.tar.gz ronaldv@stanford.edu < results.log') 
-  os.system('mutt -s "test_results" -a ppm.tar.gz makoenig@stanford.edu < results.log') 
+  os.system('mutt -s "test_results" -a hw_ppm.tar.gz ronaldv@stanford.edu < results.log') 
+  os.system('mutt -s "test_results" -a hw_ppm.tar.gz makoenig@stanford.edu < results.log') 
