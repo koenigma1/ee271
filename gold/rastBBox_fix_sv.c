@@ -2,7 +2,16 @@
 #include <stdio.h>
 #include <limits.h>
 #include <assert.h>
-
+#include <stdarg.h>
+void abort_(const char * s, ...)
+{
+  va_list args;
+  va_start(args, s);
+  vfprintf(stderr, s, args);
+  fprintf(stderr, "\n");
+  va_end(args);
+  abort();
+}
 //Given a uPoly and Bbox check that Bbox is good bound 
 // on uPoly
 int rastBBox_bbox_check( int   v0_x,     //uPoly
@@ -77,9 +86,9 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
         // Calculate a clamped BBox and floor the fixed point result
         if (vertices == 3) {
           ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
-          ur_x = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+          ur_x = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
           ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
-          ur_y = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+          ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
         } else {
                 abort_("Quadrilaterals are not handled yet\n");
         }
@@ -297,9 +306,9 @@ int rastBBox_check( int   v0_x,      //uPoly
         // Calculate a clamped BBox and floor the fixed point result
         if (vertices == 3) {
           ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
-          ur_x = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
+          ur_x = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[2].x[0]) );
           ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
-          ur_y = _CEIL_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
+          ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
         } else {
                 abort_("Quadrilaterals are not handled yet\n");
         }
