@@ -12,10 +12,10 @@ def run(dir):
   for file in files:
     base = os.path.splitext(file)[0]
     dat = base + '.dat'
-    log = base + '_sim.log'
     # save the output in the current directory
     ppm = os.path.split(base)[1] + '_golden.ppm'
-    os.system('make run RUN="+testname=%s' % (dat))
+    log = os.path.split(base)[1] + '_sim.log'
+    os.system('make run RUN="+testname=%s"' % (dat))
     os.system('mv sv_out.ppm %s' % (ppm))
     os.system('mv run_bb.log %s' % (log))
 
