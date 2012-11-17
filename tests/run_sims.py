@@ -7,7 +7,7 @@ import re
 # Some ideas
 # tar -czv -f hw_ppm.tar.gz *hw.ppm
 # mutt -a ppm.tar.gz ronaldv@stanford.edu < results.log (tee to file or something)
-# check size?
+#check size?
 # tar log files...
 
 def run(dir):
@@ -37,10 +37,10 @@ def run(dir):
     status = os.system('echo "*** checking results for %s" >> results.log' % base)
     status = os.system('diff %s %s > /dev/null' % (ppm, ref))
     if status == 0:
-			print '*** PASSED'
+		print '*** PASSED'
     		os.system('echo "*** PASSED"  >> results.log')
     else:
-			print '*** FAILED'
+		print '*** FAILED'
     		os.system('echo "*** FAILED" >> results.log')
 
 

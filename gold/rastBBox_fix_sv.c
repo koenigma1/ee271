@@ -408,7 +408,9 @@ int rastBBox_check( int   v0_x,      //uPoly
   }
 
   if( hits != count ){
-    printf( "Check hw to gold  %d to %d \n\n" , hits , count );}
+    printf( "Check hw to gold  %d to %d \n" , hits , count );
+  	 printf ("BBox: (%lx,%lx) - (%lx,%lx)\n\n", ll_x, ll_y, ur_x, ur_y);
+  }
 
   return hits == count;
 }

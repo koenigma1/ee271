@@ -168,6 +168,8 @@ C_COMP_FLAG :=		-c -lm -m64
 # for C DPI function
 
 
+				#+vcs+dumpvars+wave.vcd				\
+
 VERILOG_COMPILE_FLAGS := 	-sverilog 					\
 				+cli 						\
 				+lint=PCWM					\
