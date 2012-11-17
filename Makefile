@@ -203,7 +203,7 @@ DESIGN_TARGET = rast
 
 # The target clock period and area in library units (nS) (um^2). 45 
 # you should be able to achieve 0.3ns clock rate by adjusting pipeline depths
-CLK_PERIOD=0.3; 
+CLK_PERIOD=0.25; 
 TARGET_AREA=40000;
 
 
