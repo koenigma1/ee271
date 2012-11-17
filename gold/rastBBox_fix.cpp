@@ -188,7 +188,7 @@ void rastBBox_bbox_fix( u_Poly< long , ushort >& poly ,
 	ur_y = _MIN_VAL(ur_y, screen_h);
 	ll_x = _MAX_VAL(ll_x, 0);
 	ll_y = _MAX_VAL(ll_y, 0);
-
+	printf("BBox. (%ld,%ld) - (%ld,%ld)\n", ll_x, ll_y,  ur_x, ur_y);
 	#undef _FLOOR_SS
 	#undef _FLOOR_MASK
 	#undef _MIN_VAL

@@ -28,7 +28,7 @@ def run(dir):
     os.system('rm -f %s' % (log,log))
 
   # do a separate loop so that the results appear at the bottom
-  os.system('echo RESULTS > results.log')
+  os.system('echo "RESULTS " > results.log')
   for file in files:
     base = os.path.splitext(file)[0]
     ref = base + '_ref.ppm'
