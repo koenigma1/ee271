@@ -279,7 +279,7 @@ module `mname()`
 									   
 									   
    
-   //; if(0) { # turn this off when you run big test vectors
+   //; if(1) { # turn this off when you run big test vectors
 
  
     //; my $gm2rst_mon = generate( 'gm2rst_monitor', "gm2rst_mon", 
