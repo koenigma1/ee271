@@ -25,7 +25,7 @@ def run(dir):
     os.system('mv sv_out.ppm %s' % (ppm))
     os.system('mv run_bb.log %s' % (log))
     os.system('tar -czv -f %s.tar.gz %s' % (log,log))
-    os.system('rm -f %s' % (log,log))
+    os.system('rm -f %s' % (log))
 
   # do a separate loop so that the results appear at the bottom
   os.system('echo "RESULTS " > results.log')
