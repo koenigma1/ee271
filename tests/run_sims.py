@@ -10,18 +10,19 @@ import re
 #check size?
 # tar log files...
 
-def run(dir):
+def run(dir, mod_FSM):
   '''
     run the tests in the directory
   '''
   files = [os.path.join(dir, f) for f in os.listdir(dir) if f.endswith('.dat')]
+  #os.system('make clean comp GEN_PARAM="top_rast.rast.test_iterator.ModifiedFSM=%s"' % (mod_FSM))
   for file in files:
     base = os.path.splitext(file)[0]
     dat = base + '.dat'
     # save the output in the current directory
     ppm = os.path.split(base)[1] + '_hw.ppm'
     log = os.path.split(base)[1] + '_sim.log'
-    os.system('make run RUN="+testname=%s"' % (dat))
+    os.system('make genesis_clean run RUN="+testname=%s" GEN_PARAM="top_rast.rast.test_iterator.ModifiedFSM=%s"' % (dat,mod_FSM))
     os.system('mv sv_out.ppm %s' % (ppm))
     os.system('mv run_bb.log %s' % (log))
     os.system('tar -czv -f %s.tar.gz %s' % (log,log))
@@ -35,7 +36,7 @@ def run(dir):
     ppm = os.path.split(base)[1] + '_hw.ppm'
     print '*** checking results for %s' % base,
     status = os.system('echo "*** checking results for %s" >> results.log' % base)
-    status = os.system('diff %s %s > /dev/null' % (ppm, ref))
+    status = os.system('diff %s %s >& /dev/null' % (ppm, ref))
     if status == 0:
 		print '*** PASSED'
     		os.system('echo "*** PASSED"  >> results.log')
@@ -45,8 +46,11 @@ def run(dir):
 
 
 if __name__ == '__main__':
-  os.system('make clean comp')
-  run(sys.argv[1])
+  run(sys.argv[1],'NO')
   os.system('tar -czv -f hw_ppm.tar.gz *hw.ppm') 
-  os.system('mutt -s "test_results" -a hw_ppm.tar.gz ronaldv@stanford.edu < results.log') 
-  os.system('mutt -s "test_results" -a hw_ppm.tar.gz makoenig@stanford.edu < results.log') 
+  os.system('mutt -s "test_results mod_FSM=NO" -a hw_ppm.tar.gz -- ronaldv@stanford.edu < results.log') 
+  os.system('mutt -s "test_results mod_FSM=NO" -a hw_ppm.tar.gz -- makoenig@stanford.edu < results.log') 
+  run(sys.argv[1],'YES')
+  os.system('tar -czv -f hw_ppm.tar.gz *hw.ppm') 
+  os.system('mutt -s "test_results mod_FSM=YES" -a hw_ppm.tar.gz -- ronaldv@stanford.edu < results.log') 
+  os.system('mutt -s "test_results mod_FSM=YES" -a hw_ppm.tar.gz -- makoenig@stanford.edu < results.log') 

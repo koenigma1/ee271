@@ -108,7 +108,7 @@ GENESIS_GEN_FLAGS :=	-gen -top $(TOP_MODULE)					\
 # Input xml/cfg files, input parameters
 GENESIS_CFG_XML	:= empty.xml
 GENESIS_CFG_SCRIPT	:=
-GENESIS_PARAMS	:=
+GENESIS_PARAMS	:= $(GEN_PARAM)
 ifneq ($(strip $(GENESIS_CFG_SCRIPT)),)
   GENESIS_GEN_FLAGS	:= $(GENESIS_GEN_FLAGS) -cfg $(GENESIS_CFG_SCRIPT)
   $(warning WARNING: GENESIS_CFG_SCRIPT set to $(GENESIS_CFG_SCRIPT))
