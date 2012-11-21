@@ -22,7 +22,7 @@ def run(dir, mod_FSM):
     # save the output in the current directory
     ppm = os.path.split(base)[1] + '_hw.ppm'
     log = os.path.split(base)[1] + '_sim.log'
-    os.system('make genesis_clean run RUN="+testname=%s" GEN_PARAM="top_rast.rast.test_iterator.ModifiedFSM=%s"' % (dat,mod_FSM))
+    os.system('make genesis_clean run RUN="+testname=%s" GEN_PARAM="top_rast.rast.PipesSamp=6 top_rast.rast.PipesHash=4 top_rast.rast.test_iterator.ModifiedFSM=%s"' % (dat,mod_FSM))
     os.system('mv sv_out.ppm %s' % (ppm))
     os.system('mv run_bb.log %s' % (log))
     os.system('tar -czv -f %s.tar.gz %s' % (log,log))
@@ -46,11 +46,13 @@ def run(dir, mod_FSM):
 
 
 if __name__ == '__main__':
+  os.system('rm -f *_hw.ppm')
   run(sys.argv[1],'NO')
-  os.system('tar -czv -f hw_ppm.tar.gz *hw.ppm') 
+  os.system('tar -czv -f hw_ppm_FSM_NO.tar.gz *hw.ppm') 
   os.system('mutt -s "test_results mod_FSM=NO" -a hw_ppm.tar.gz -- ronaldv@stanford.edu < results.log') 
-  os.system('mutt -s "test_results mod_FSM=NO" -a hw_ppm.tar.gz -- makoenig@stanford.edu < results.log') 
+ # os.system('mutt -s "test_results mod_FSM=NO" -a hw_ppm.tar.gz -- makoenig@stanford.edu < results.log') 
+  os.system('rm -f *_hw.ppm')
   run(sys.argv[1],'YES')
-  os.system('tar -czv -f hw_ppm.tar.gz *hw.ppm') 
+  os.system('tar -czv -f hw_ppm_FSM_YES.tar.gz *hw.ppm') 
   os.system('mutt -s "test_results mod_FSM=YES" -a hw_ppm.tar.gz -- ronaldv@stanford.edu < results.log') 
-  os.system('mutt -s "test_results mod_FSM=YES" -a hw_ppm.tar.gz -- makoenig@stanford.edu < results.log') 
+ # os.system('mutt -s "test_results mod_FSM=YES" -a hw_ppm.tar.gz -- makoenig@stanford.edu < results.log') 
