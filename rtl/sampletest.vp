@@ -71,6 +71,15 @@
 //; my $pipe_depth = parameter(Name=>'PipelineDepth',
 //;                            Val=>2, Min=>1, Step=>1, 
 //;                            Doc=>"How many pipe stages are in this block");
+//; my $mult_prec_low= parameter(Name=>'MultPrecLow',
+//;                            Val=>0, Min=>0, Step=>1, 
+//;                            Doc=>"Lowes bit that goes to the multiplier");
+//; my $mult_prec= parameter(Name=>'MultPrec',
+//;                            Val=>24, Min=>1, Step=>1, 
+//;                            Doc=>"Highest bit that goes to the multiplier");
+//; my $mult_mod= parameter(Name=>'MultMod',
+//;                            Val=>0, Min=>0, Step=>1, 
+//;                            Doc=>"Highest bit that goes to the multiplier");
 //; 
 //; # local variables
 //; my $edges = ($verts == 3) ? 3 : 5 ;
@@ -126,7 +135,7 @@ module  `mname()`
    logic signed [`$sig_fig`-1:0] 	 hit_R16S[`$axis`-1:0];  
    // Signals in Access Order 
 
-   
+    
 
    /* Organize Edge Data*/
    //; for( my $i = 0 ; $i < $verts ; $i++ ) {
@@ -155,8 +164,13 @@ module  `mname()`
    
    //; for( my $i = 0 ; $i < $edges ; $i++) {
    always_comb begin
-      dist_lg_R16S[`$i`] =     edge_R16S[`$i`][0][0] * edge_R16S[`$i`][1][1]
+    //; if(!$mult_mod) { 
+     dist_lg_R16S[`$i`] =    edge_R16S[`$i`][0][0] * edge_R16S[`$i`][1][1]
      -  edge_R16S[`$i`][0][1] * edge_R16S[`$i`][1][0];
+    //; } else {
+     dist_lg_R16S[`$i`] =   (signed'(edge_R16S[`$i`][0][0][`$mult_prec`-1:`$mult_prec_low`]) * signed'(edge_R16S[`$i`][1][1][`$mult_prec`-1:`$mult_prec_low`])
+     -  signed'(edge_R16S[`$i`][0][1][`$mult_prec`-1:`$mult_prec_low`]) * signed'(edge_R16S[`$i`][1][0][`$mult_prec`-1:`$mult_prec_low`])) >> `$mult_prec_low`;
+    //; }
    end	    
    //; }
 
