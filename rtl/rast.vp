@@ -57,7 +57,7 @@
 //;                            Val=>2, Min=>1, Step=>1, 
 //;                            Doc=>"Number of pipe stages in hash module");
 //; my $pipes_samp = parameter(Name=>'PipesSamp',
-//;                            Val=>2, Min=>1, Step=>1, 
+//;                            Val=>3, Min=>1, Step=>1, 
 //;                            Doc=>"Number of Pipe Stages in sample module");
 
 module `mname()`  

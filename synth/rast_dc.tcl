@@ -155,7 +155,7 @@ redirect "reports/power_report" { report_power -analysis_effort hi }
 #redirect "report/timing_report_max" { report_timing -path full -delay max -max_paths 200 }
 #report_timing -path full -delay min -max_paths 10
 report_timing
-redirect "reports/timing_report_maxsm" { report_timing -significant_digits 4 }
+redirect "reports/timing_report_maxsm" { report_timing -max_paths 10 -significant_digits 4 }
 #redirect "reports/timing_report_min" { report_timing -path full -delay min -max_paths 50 }
 #report_timing_requirements
 #redirect "reports/timing_requirements_report" { report_timing_requirements }
