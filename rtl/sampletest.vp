@@ -162,6 +162,28 @@ module  `mname()`
    end //always_comb
    //; }
    
+   //; if( $verts == 4 ) {
+   always_comb begin
+      edge_R16S[0][1] = poly_shift_R16S[1];
+      edge_R16S[0][0] = poly_shift_R16S[0];
+
+      edge_R16S[1][1] = poly_shift_R16S[2];
+      edge_R16S[1][0] = poly_shift_R16S[1];
+
+      edge_R16S[2][1] = poly_shift_R16S[3];
+      edge_R16S[2][0] = poly_shift_R16S[2];
+
+      edge_R16S[3][1] = poly_shift_R16S[0];
+      // need to account for the case that this is a triangle by changing the third edge
+      unique if(isQuad_R16H) edge_R16S[3][0] = poly_shift_R16S[3];
+        else if(!isQuad_R16H) edge_R16S[3][0] = poly_shift_R16S[2];
+
+      edge_R16S[4][1] = poly_shift_R16S[3];
+      edge_R16S[4][0] = poly_shift_R16S[1];
+
+   end //always_comb
+   //; }
+
    //; for( my $i = 0 ; $i < $edges ; $i++) {
    always_comb begin
     //; if(!$mult_mod) { 
@@ -183,25 +205,25 @@ module  `mname()`
    end  
    //; } elsif( $edges == 5 ) {
    always_comb begin
-      assert( 0 ) else $fatal( "Sample test unit not configured for 4 Vertices\n");
+      edge_chk1_R16[0] =  dist_lg_R16S[0]  <=  0 ;
+      edge_chk1_R16[1] =  dist_lg_R16S[1]  <   0 ;
+      edge_chk1_R16[2] =  dist_lg_R16S[2]  <   0 ;
+      edge_chk1_R16[3] =  dist_lg_R16S[3]  <=  0 ;
+      edge_chk1_R16[4] =  dist_lg_R16S[4]  <   0 ;
    end  
    //; }
 
-   assign hit_valid_R16H = & {edge_chk1_R16[2:0], validSamp_R16H}; //Back Face Cull Case
-
-
+   assign hit_valid_R16H = (& {isQuad_R16H, edge_chk1_R16[`$edges`-1:0], validSamp_R16H}) | (& {!isQuad_R16H, edge_chk1_R16[3], edge_chk1_R16[1:0], validSamp_R16H}); //Back Face Cull Case
    
    /*Calculate Distance*/
    
    //Calculate Depth as depth of first vertex
    // Note that a barrycentric interpolation would
    // be more accurate
-   //; if( $verts == 3) {
    always_comb begin
       hit_R16S[1:0] = sample_R16S[1:0]; //Make sure you use unjittered sample
       hit_R16S[2] = poly_R16S[0][2]; // z value equals the z value of the first vertex
    end
-   //; }
    //TODO: Calculate Depth by berrycentric intropolation
 
 

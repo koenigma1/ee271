@@ -172,9 +172,111 @@ module `mname()`
    logic 				validPoly_R13H_retime ;                 // Valid Data for Operation
    // output for retiming registers
 
-   //; # if( $verts == 4 ) {
-   /* OLD QUAD CODE Used to be here */
-   //; # }
+   //; if( $verts == 4 ) {
+
+   //Note: <= might be faster than < and functionally equivelant here
+   always_comb begin
+      //Compare X
+      cmp_R10H[0][0] =  poly_R10S[0][0] <  poly_R10S[1][0] ;
+      cmp_R10H[0][1] =  poly_R10S[0][0] <  poly_R10S[2][0] ;
+      cmp_R10H[0][2] =  poly_R10S[1][0] <  poly_R10S[2][0] ;
+      cmp_R10H[0][3] =  poly_R10S[0][0] <  poly_R10S[3][0] ;
+      cmp_R10H[0][4] =  poly_R10S[1][0] <  poly_R10S[3][0] ;
+      cmp_R10H[0][5] =  poly_R10S[2][0] <  poly_R10S[3][0] ;
+      
+      //Compare Y
+      cmp_R10H[1][0] =  poly_R10S[0][1] <  poly_R10S[1][1] ;
+      cmp_R10H[1][1] =  poly_R10S[0][1] <  poly_R10S[2][1] ;
+      cmp_R10H[1][2] =  poly_R10S[1][1] <  poly_R10S[2][1] ;
+      cmp_R10H[1][3] =  poly_R10S[0][1] <  poly_R10S[3][1] ;
+      cmp_R10H[1][4] =  poly_R10S[1][1] <  poly_R10S[3][1] ;
+      cmp_R10H[1][5] =  poly_R10S[2][1] <  poly_R10S[3][1] ;
+   end 
+   
+   always_comb begin
+      //Decoded Select
+      //  sel[n][m][p]
+      //  n=0 -> ll n=1 -> ur
+      //  m=0 -> x  m=1 -> y
+      //  p correspeonds to vertice index
+      
+      // X
+      bbox_sel_R10H[0][0][0] =  cmp_R10H[0][0] &  cmp_R10H[0][1] & ( cmp_R10H[0][3] | !isQuad_R10H) ;	    
+      bbox_sel_R10H[0][0][1] = !cmp_R10H[0][0] &  cmp_R10H[0][2] & ( cmp_R10H[0][4] | !isQuad_R10H) ; 
+      bbox_sel_R10H[0][0][2] = !cmp_R10H[0][1] & !cmp_R10H[0][2] & ( cmp_R10H[0][5] | !isQuad_R10H) ; 
+      bbox_sel_R10H[0][0][3] = !cmp_R10H[0][3] & !cmp_R10H[0][4] &  !cmp_R10H[0][5] &  isQuad_R10H  ; 
+      bbox_sel_R10H[1][0][0] = !cmp_R10H[0][0] & !cmp_R10H[0][1] & (!cmp_R10H[0][3] | !isQuad_R10H) ; 
+      bbox_sel_R10H[1][0][1] =  cmp_R10H[0][0] & !cmp_R10H[0][2] & (!cmp_R10H[0][4] | !isQuad_R10H) ; 
+      bbox_sel_R10H[1][0][2] =  cmp_R10H[0][1] &  cmp_R10H[0][2] & (!cmp_R10H[0][5] | !isQuad_R10H) ; 
+      bbox_sel_R10H[1][0][3] =  cmp_R10H[0][3] &  cmp_R10H[0][4] &   cmp_R10H[0][5] &  isQuad_R10H  ; 
+      
+      // Y
+      bbox_sel_R10H[0][1][0] =  cmp_R10H[1][0] &  cmp_R10H[1][1] & ( cmp_R10H[1][3] | !isQuad_R10H) ; 
+      bbox_sel_R10H[0][1][1] = !cmp_R10H[1][0] &  cmp_R10H[1][2] & ( cmp_R10H[1][4] | !isQuad_R10H) ; 
+      bbox_sel_R10H[0][1][2] = !cmp_R10H[1][1] & !cmp_R10H[1][2] & ( cmp_R10H[1][5] | !isQuad_R10H) ; 
+      bbox_sel_R10H[0][1][3] = !cmp_R10H[1][3] & !cmp_R10H[1][4] &  !cmp_R10H[1][5] &  isQuad_R10H  ; 
+      bbox_sel_R10H[1][1][0] = !cmp_R10H[1][0] & !cmp_R10H[1][1] & (!cmp_R10H[1][3] | !isQuad_R10H) ; 
+      bbox_sel_R10H[1][1][1] =  cmp_R10H[1][0] & !cmp_R10H[1][2] & (!cmp_R10H[1][4] | !isQuad_R10H) ; 
+      bbox_sel_R10H[1][1][2] =  cmp_R10H[1][1] &  cmp_R10H[1][2] & (!cmp_R10H[1][5] | !isQuad_R10H) ; 
+      bbox_sel_R10H[1][1][3] =  cmp_R10H[1][3] &  cmp_R10H[1][4] &   cmp_R10H[1][5] &  isQuad_R10H  ; 
+
+      //Check that the Select is OneHot (only one bit in array is 1)
+      assert( rst | $onehot( bbox_sel_R10H[0][0] )) 
+	else $error("%b \n",bbox_sel_R10H[0][0]) ;
+      assert( rst |  $onehot( bbox_sel_R10H[1][0] )) 
+	else $error("%b \n",bbox_sel_R10H[1][0]);
+      assert( rst |  $onehot( bbox_sel_R10H[0][1] )) 
+	else $error("%b \n",bbox_sel_R10H[0][1]) ;
+      assert( rst |  $onehot( bbox_sel_R10H[1][1] )) 
+	else $error("%b \n",bbox_sel_R10H[1][1]);
+      //Check that the Select is OneHot (only one bit in array is 1)
+      
+      //Perform the Selection
+      //  note that unique indicates that 
+      //  one and only one select signal will be valid
+      //  and that only one case event will occur   
+      //
+      //  This will synthesize to a simple mux with decoded select
+      
+      //Upper Right X Select
+      unique case( 1'b1 )
+	( bbox_sel_R10H[1][0][0] ): box_R10S[1][0] = poly_R10S[0][0] ;
+	( bbox_sel_R10H[1][0][1] ): box_R10S[1][0] = poly_R10S[1][0] ;
+	( bbox_sel_R10H[1][0][2] ): box_R10S[1][0] = poly_R10S[2][0] ;
+	( bbox_sel_R10H[1][0][3] ): box_R10S[1][0] = poly_R10S[3][0] ;
+      endcase // 
+      
+      //Lower Left X Select
+      unique case( 1'b1 )
+	( bbox_sel_R10H[0][0][0] ): box_R10S[0][0] = poly_R10S[0][0] ;
+	( bbox_sel_R10H[0][0][1] ): box_R10S[0][0] = poly_R10S[1][0] ;
+	( bbox_sel_R10H[0][0][2] ): box_R10S[0][0] = poly_R10S[2][0] ;
+	( bbox_sel_R10H[0][0][3] ): box_R10S[0][0] = poly_R10S[3][0] ;
+      endcase //
+
+      //Upper Right Y Select
+      unique case( 1'b1 )
+	( bbox_sel_R10H[1][1][0] ): box_R10S[1][1] = poly_R10S[0][1] ;
+	( bbox_sel_R10H[1][1][1] ): box_R10S[1][1] = poly_R10S[1][1] ;
+	( bbox_sel_R10H[1][1][2] ): box_R10S[1][1] = poly_R10S[2][1] ;
+	( bbox_sel_R10H[1][1][3] ): box_R10S[1][1] = poly_R10S[3][1] ;
+      endcase // 
+      
+      //Lower Left Y Select
+      unique case( 1'b1 )
+	( bbox_sel_R10H[0][1][0] ): box_R10S[0][1] = poly_R10S[0][1] ;
+	( bbox_sel_R10H[0][1][1] ): box_R10S[0][1] = poly_R10S[1][1] ;
+	( bbox_sel_R10H[0][1][2] ): box_R10S[0][1] = poly_R10S[2][1] ;
+	( bbox_sel_R10H[0][1][3] ): box_R10S[0][1] = poly_R10S[3][1] ;
+      endcase //
+
+      //End Selection of Bounding Box    
+      
+   end // always_comb 
+
+
+
+   //; }
    
    /* Note to the bold!!! */
    /* You can actually process more than
@@ -300,37 +402,17 @@ module `mname()`
    //  TODO -> Explanation of why it is floor
    
    //Round LowerLeft and UpperRight for X and Y
-   //; for( my $i = 0 ; $i < 2 ; $i++ ) {
-   //; 	for( my $j = 0 ; $j < 2 ; $j++ ) {
+   //; for( my $i = 0 ; $i < $verts ; $i++ ) {
+   //; 	for( my $j = 0 ; $j < $axis ; $j++ ) {
    always_comb begin
       
       //Integer Portion of LL Remains the Same 
-      rounded_box_R10S[`$i`][`$j`][`$sig_fig`-1:`$radix`] 
-     = box_R10S[`$i`][`$j`][`$sig_fig`-1:`$radix`];
-
-      //Fractional Portion LL less than Subsample set to 0
-      rounded_box_R10S[`$i`][`$j`][`$radix`-4:0] 
-	= `$radix-3`'b0;
-      
-      //Mux for Correct Roundoff Point 
+      rounded_box_R10S[`$i`][`$j`][`$sig_fig`-1:`$radix`] = box_R10S[`$i`][`$j`][`$sig_fig`-1:`$radix`] ;
+      rounded_box_R10S[`$i`][`$j`][`$radix-1`] = box_R10S[`$i`][`$j`][`$radix-1`] & (| subSample_RnnnnU[2:0]) ;
+      rounded_box_R10S[`$i`][`$j`][`$radix-2`] = box_R10S[`$i`][`$j`][`$radix-2`] & (| subSample_RnnnnU[1:0]) ;
+      rounded_box_R10S[`$i`][`$j`][`$radix-3`] = box_R10S[`$i`][`$j`][`$radix-3`] & subSample_RnnnnU[0] ;
+      rounded_box_R10S[`$i`][`$j`][`$radix-3`:0] = `$radix-3`'b0 ;
       assert( $onehot( subSample_RnnnnU )) else $fatal( "onehot\n");
-      
-      unique case( subSample_RnnnnU )
-	(4'b0001): // 64x MSAA
-	  rounded_box_R10S[`$i`][`$j`][`$radix`-1:`$radix`-3] 
-	       = { box_R10S[`$i`][`$j`][`$radix`-1:`$radix`-3] };  
-	(4'b0010): // 16x MSAA
-		 rounded_box_R10S[`$i`][`$j`][`$radix`-1:`$radix`-3] 
-	  = { box_R10S[`$i`][`$j`][`$radix`-1:`$radix`-2] , 1'b0 };  
-	(4'b0100): // 4x MSAA
-	    rounded_box_R10S[`$i`][`$j`][`$radix`-1:`$radix`-3] 
-	  = { box_R10S[`$i`][`$j`][`$radix`-1] , 2'b0 }; 
-	(4'b1000): // 1x MSAA
-	    rounded_box_R10S[`$i`][`$j`][`$radix`-1:`$radix`-3] 
-	  = { 3'b0 } ;
-      endcase // case ( subSample_RnnnnU )
-      
-      //Assertion Checks at end of Module
       
    end // always_comb
    //;		}
