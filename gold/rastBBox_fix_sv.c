@@ -90,7 +90,10 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
           ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
           ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
         } else {
-                abort_("Quadrilaterals are not handled yet\n");
+          ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[3].x[0]) );
+          ur_x = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[3].x[0]) );
+          ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[3].x[1]) );
+          ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[3].x[1]) );
         }
 
       // Clip BBox to visible screen space
@@ -200,10 +203,6 @@ int rastBBox_stest_check( int   v0_x,      //uPoly
   ///// Sample Test Function Goes Here
   /////
 
-  if (vertices != 3) {
-        abort_("Quadrilaterals are not handled yet\n");
-  }
-
   // shift vertices such that sample is origin
   v0_x = poly.v[0].x[0] - s_x;
   v0_y = poly.v[0].x[1] - s_y;
@@ -211,20 +210,40 @@ int rastBBox_stest_check( int   v0_x,      //uPoly
   v1_y = poly.v[1].x[1] - s_y;
   v2_x = poly.v[2].x[0] - s_x;
   v2_y = poly.v[2].x[1] - s_y;
+  v3_x = poly.v[3].x[0] - s_x;
+  v3_y = poly.v[3].x[1] - s_y;
 
   // Distance of origin shifted edge
-  long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
-  long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
-  long dist2 = v2_x * v0_y - v0_x * v2_y; // 2-0 edge
+  if (poly.q) {
+    long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
+    long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
+    long dist2 = v2_x * v3_y - v3_x * v2_y; // 1-2 edge
+    long dist3 = v3_x * v0_y - v0_x * v3_y; // 1-2 edge
+    long dist4 = v1_x * v3_y - v3_x * v1_y; // 1-2 edge
 
-  // Test if origin is on right side of shifted edge
-  int b0 = dist0 <= 0;
-  int b1 = dist1 < 0;
-  int b2 = dist2 <= 0;
+    int b0 = dist0 <= 0;
+    int b1 = dist1 < 0;
+    int b2 = dist2 < 0;
+    int b3 = dist3 <= 0;
+    int b4 = dist4 < 0;
+   
+    result = ( b1 && b2 && ! b4 )
+      || ( ! b1 && ! b2 && b4 )
+      || ( b0 && b3 && b4 )
+      || ( ! b0 && ! b3 && ! b4 ) ;
+  } else {
+    long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
+    long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
+    long dist2 = v2_x * v0_y - v0_x * v2_y; // 2-0 edge
+  
+    // Test if origin is on right side of shifted edge
+    int b0 = dist0 <= 0;
+    int b1 = dist1 < 0;
+    int b2 = dist2 <= 0;
 
-  // Triangle min terms with culling
-  result = ( b0 && b1 && b2 );
-
+    // Triangle min terms with culling
+    result = ( b0 && b1 && b2 );
+  }
   /////
   ///// Sample Test Function Goes Here
   /////
@@ -310,7 +329,10 @@ int rastBBox_check( int   v0_x,      //uPoly
           ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
           ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[2].x[1]) );
         } else {
-                abort_("Quadrilaterals are not handled yet\n");
+          ll_x = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[3].x[0]) );
+          ur_x = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[0], poly.v[1].x[0], poly.v[2].x[0], poly.v[3].x[0]) );
+          ll_y = _FLOOR_SS( _MIN_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[3].x[1]) );
+          ur_y = _FLOOR_SS( _MAX_PER_AXIS(poly.v[0].x[1], poly.v[1].x[1], poly.v[2].x[1], poly.v[3].x[1]) );
         }
 
       // Clip BBox to visible screen space
@@ -357,10 +379,6 @@ int rastBBox_check( int   v0_x,      //uPoly
   ///// Sample Test Function Goes Here
   /////
 
-  if (vertices != 3) {
-        abort_("Quadrilaterals are not handled yet\n");
-  }
-
   // shift vertices such that sample is origin
   v0_x = poly.v[0].x[0] - s_x;
   v0_y = poly.v[0].x[1] - s_y;
@@ -368,19 +386,40 @@ int rastBBox_check( int   v0_x,      //uPoly
   v1_y = poly.v[1].x[1] - s_y;
   v2_x = poly.v[2].x[0] - s_x;
   v2_y = poly.v[2].x[1] - s_y;
+  v3_x = poly.v[3].x[0] - s_x;
+  v3_y = poly.v[3].x[1] - s_y;
 
   // Distance of origin shifted edge
-  long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
-  long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
-  long dist2 = v2_x * v0_y - v0_x * v2_y; // 2-0 edge
+  if (poly.q) {
+    long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
+    long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
+    long dist2 = v2_x * v3_y - v3_x * v2_y; // 1-2 edge
+    long dist3 = v3_x * v0_y - v0_x * v3_y; // 1-2 edge
+    long dist4 = v1_x * v3_y - v3_x * v1_y; // 1-2 edge
 
-  // Test if origin is on right side of shifted edge
-  int b0 = dist0 <= 0;
-  int b1 = dist1 < 0;
-  int b2 = dist2 <= 0;
+    int b0 = dist0 <= 0;
+    int b1 = dist1 < 0;
+    int b2 = dist2 < 0;
+    int b3 = dist3 <= 0;
+    int b4 = dist4 < 0;
+   
+    result = ( b1 && b2 && ! b4 )
+      || ( ! b1 && ! b2 && b4 )
+      || ( b0 && b3 && b4 )
+      || ( ! b0 && ! b3 && ! b4 ) ;
+  } else {
+    long dist0 = v0_x * v1_y - v1_x * v0_y; // 0-1 edge
+    long dist1 = v1_x * v2_y - v2_x * v1_y; // 1-2 edge
+    long dist2 = v2_x * v0_y - v0_x * v2_y; // 2-0 edge
+  
+    // Test if origin is on right side of shifted edge
+    int b0 = dist0 <= 0;
+    int b1 = dist1 < 0;
+    int b2 = dist2 <= 0;
 
-  // Triangle min terms with culling
-  result = ( b0 && b1 && b2 );
+    // Triangle min terms with culling
+    result = ( b0 && b1 && b2 );
+  }
 
   /////
   ///// Sample Test Function Goes Here

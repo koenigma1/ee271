@@ -131,6 +131,7 @@ module  `mname()`
    logic [`$edges`-1:0] 		 edge_chk1_R16;
    logic 				 sample_hit_R16H ;
    logic 				 hit_valid_R16H ;
+   logic 				 quad_result_R16H ;
    logic 				 norm_factor_R16S ;
    logic signed [`$sig_fig`-1:0] 	 hit_R16S[`$axis`-1:0];  
    // Signals in Access Order 
@@ -213,7 +214,9 @@ module  `mname()`
    end  
    //; }
 
-   assign hit_valid_R16H = (& {isQuad_R16H, edge_chk1_R16[`$edges`-1:0], validSamp_R16H}) | (& {!isQuad_R16H, edge_chk1_R16[3], edge_chk1_R16[1:0], validSamp_R16H}); //Back Face Cull Case
+   assign quad_result_R16H = ( edge_chk1_R16[1] & edge_chk1_R16[2] & ! edge_chk1_R16[4] ) | ( ! edge_chk1_R16[1] & ! edge_chk1_R16[2] & edge_chk1_R16[4] ) | ( edge_chk1_R16[0] & edge_chk1_R16[3] & edge_chk1_R16[4] ) | ( ! edge_chk1_R16[0] & ! edge_chk1_R16[3] & ! edge_chk1_R16[4] ) ;
+
+   assign hit_valid_R16H = (& {isQuad_R16H, quad_result_R16H, validSamp_R16H}) | (& {!isQuad_R16H, edge_chk1_R16[3], edge_chk1_R16[1:0], validSamp_R16H}); //Back Face Cull Case
    
    /*Calculate Distance*/
    
