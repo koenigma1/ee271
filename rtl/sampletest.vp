@@ -69,17 +69,17 @@
 //;                            Val=>3, Min=>1, Step=>1, 
 //;                            Doc=>"Number of color channels");
 //; my $pipe_depth = parameter(Name=>'PipelineDepth',
-//;                            Val=>2, Min=>1, Step=>1, 
+//;                            Val=>6, Min=>1, Step=>1, 
 //;                            Doc=>"How many pipe stages are in this block");
 //; my $mult_prec_low= parameter(Name=>'MultPrecLow',
 //;                            Val=>0, Min=>0, Step=>1, 
 //;                            Doc=>"Lowes bit that goes to the multiplier");
 //; my $mult_prec= parameter(Name=>'MultPrec',
-//;                            Val=>24, Min=>1, Step=>1, 
+//;                            Val=>17, Min=>1, Step=>1, 
 //;                            Doc=>"Highest bit that goes to the multiplier");
 //; my $mult_mod= parameter(Name=>'MultMod',
-//;                            Val=>0, Min=>0, Step=>1, 
-//;                            Doc=>"Highest bit that goes to the multiplier");
+//;                            Val=>1, Min=>0, Step=>1, 
+//;                            Doc=>"Enable multiplier bit reduction");
 //; 
 //; # local variables
 //; my $edges = ($verts == 3) ? 3 : 5 ;
@@ -168,8 +168,8 @@ module  `mname()`
      dist_lg_R16S[`$i`] =    edge_R16S[`$i`][0][0] * edge_R16S[`$i`][1][1]
      -  edge_R16S[`$i`][0][1] * edge_R16S[`$i`][1][0];
     //; } else {
-     dist_lg_R16S[`$i`] =   (signed'(edge_R16S[`$i`][0][0][`$mult_prec`-1:`$mult_prec_low`]) * signed'(edge_R16S[`$i`][1][1][`$mult_prec`-1:`$mult_prec_low`])
-     -  signed'(edge_R16S[`$i`][0][1][`$mult_prec`-1:`$mult_prec_low`]) * signed'(edge_R16S[`$i`][1][0][`$mult_prec`-1:`$mult_prec_low`])) >> `$mult_prec_low`;
+     dist_lg_R16S[`$i`] =   signed'(edge_R16S[`$i`][0][0][`$mult_prec`-1:`$mult_prec_low`]) * signed'(edge_R16S[`$i`][1][1][`$mult_prec`-1:`$mult_prec_low`])
+     -  signed'(edge_R16S[`$i`][0][1][`$mult_prec`-1:`$mult_prec_low`]) * signed'(edge_R16S[`$i`][1][0][`$mult_prec`-1:`$mult_prec_low`]);
     //; }
    end	    
    //; }
