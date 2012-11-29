@@ -160,6 +160,8 @@ module `mname()`
    logic signed [`$sig_fig`-1:0] 	increment_box_R10S[1:0];     // 1 Set X,Y Fixed Point Values 
    logic [1:0][1:0] 			clamp_R10H;                  // signal require clamping
    logic [1:0][1:0] 			invalidate_R10H;             // polygon out of bounds
+   logic signed [`$sig_fig`-1:0] 	poly_shift_R10H[3:0];        // terms for culling equation
+   logic                                culling_R10H;                // backface culling
    logic signed [`$sig_fig`-1:0] 	out_box_R10S[1:0][1:0];      // bounds for output
    logic 				outvalid_R10H;               // output is valid
    //R10 Signals
@@ -172,6 +174,39 @@ module `mname()`
    logic 				validPoly_R13H_retime ;                 // Valid Data for Operation
    // output for retiming registers
 
+
+   // check that the poly is on screen
+   always_comb begin
+
+     //; if( $verts == 3) {
+     invalidate_R10H[0][0] = (poly_R10S[0][0] > screen_RnnnnS[0]) & (poly_R10S[1][0] > screen_RnnnnS[0]) & (poly_R10S[2][0] > screen_RnnnnS[0]) ;
+     invalidate_R10H[0][0] = (poly_R10S[0][0] > screen_RnnnnS[0]) & (poly_R10S[1][0] > screen_RnnnnS[0]) & (poly_R10S[2][0] > screen_RnnnnS[0]) ;
+     invalidate_R10H[0][1] = (poly_R10S[0][1] > screen_RnnnnS[1]) & (poly_R10S[1][1] > screen_RnnnnS[1]) & (poly_R10S[2][1] > screen_RnnnnS[1]) ;
+     invalidate_R10H[1][0] = (poly_R10S[0][0] < 0) & (poly_R10S[1][0] < 0) & (poly_R10S[2][0] < 0) ;
+     invalidate_R10H[1][1] = (poly_R10S[0][1] < 0) & (poly_R10S[1][1] < 0) & (poly_R10S[2][1] < 0) ;
+
+     //; } else {
+     invalidate_R10H[0][0] = (poly_R10S[0][0] > screen_RnnnnS[0]) & (poly_R10S[1][0] > screen_RnnnnS[0]) & (poly_R10S[2][0] > screen_RnnnnS[0]) & (poly_R10S[3][0] > screen_RnnnnS[0]) ;
+     invalidate_R10H[0][1] = (poly_R10S[0][1] > screen_RnnnnS[1]) & (poly_R10S[1][1] > screen_RnnnnS[1]) & (poly_R10S[2][1] > screen_RnnnnS[1]) & (poly_R10S[3][1] > screen_RnnnnS[1]) ;
+     invalidate_R10H[1][0] = (poly_R10S[0][0] < 0) & (poly_R10S[1][0] < 0) & (poly_R10S[2][0] < 0) & (poly_R10S[3][0] < 0) ;
+     invalidate_R10H[1][1] = (poly_R10S[0][1] < 0) & (poly_R10S[1][1] < 0) & (poly_R10S[2][1] < 0) & (poly_R10S[3][1] < 0) ;
+
+     //; }
+   end
+
+   // do back-face culling
+   always_comb begin 
+     poly_shift_R10H[0] = poly_R10S[1][0] - poly_R10S[0][0];
+     poly_shift_R10H[1] = poly_R10S[2][1] - poly_R10S[0][1];
+     poly_shift_R10H[2] = poly_R10S[0][0] - poly_R10S[2][0];
+     poly_shift_R10H[3] = poly_R10S[1][1] - poly_R10S[0][1];
+   end
+   always_comb begin
+     culling_R10H = ((poly_shift_R10H[0] * poly_shift_R10H[1]) + (poly_shift_R10H[2] + poly_shift_R10H[3])) <= 0;
+   end
+
+   assign  outvalid_R10H = ~( | invalidate_R10H ) & validPoly_R10H & culling_R10H;
+    
    //; if( $verts == 4 ) {
 
    //Note: <= might be faster than < and functionally equivelant here
@@ -430,14 +465,6 @@ module `mname()`
       //Clamp if UR is up/right of Screen
       clamp_R10H[1][0] = box_R10S[1][0] > screen_RnnnnS[0] ;
       clamp_R10H[1][1] = box_R10S[1][1] > screen_RnnnnS[1] ;
-
-      //Invalid if BBox is up/right of Screen
-      invalidate_R10H[0][0] = box_R10S[0][0] > screen_RnnnnS[0] ;
-      invalidate_R10H[0][1] = box_R10S[0][1] > screen_RnnnnS[1] ;
-
-      //Invalid if BBox is down/left of Screen
-      invalidate_R10H[1][0] = box_R10S[1][0] < 0 ;	    
-      invalidate_R10H[1][1] = box_R10S[1][1] < 0 ;	    
    end
    //Check if Unclamped Box Requires Clipping or Rejection
 
@@ -455,8 +482,6 @@ module `mname()`
    end
    //Select Between Screen Bounds and Rounded Bounds
    
-   assign  outvalid_R10H = ~( | invalidate_R10H ) & validPoly_R10H ;
-
    
    //Flop Clamped Box to R13_retime with retiming registers
    //; my $d_bbx_r1 = generate( 'dff3', "d_bbx_r1", 
