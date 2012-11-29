@@ -26,6 +26,7 @@
    //; my $pipes_iter = $dut_obj->get_param('PipesIter');
    //; my $pipes_hash = $dut_obj->get_param('PipesHash');
    //; my $pipes_samp = $dut_obj->get_param('PipesSamp');
+   //; my $multi_tests= $dut_obj->get_param('MultiTests');
 
 
    /*****************************************
@@ -51,9 +52,9 @@
    
    //DUT OUTPUTS
    logic 		        halt_RnnnnL;
-   logic signed   [`$sig_fig`-1:0] hit_R18S[`$axis`-1:0]; //Sample hit Location
-   logic unsigned [`$sig_fig`-1:0] color_R18U[`$colors`-1:0]; //Sample hit Location
-   logic 		        hit_valid_R18H ;  //Did Sample Hit?
+   logic signed   [`$sig_fig`-1:0] hit_R18S[`$multi_tests`-1:0][`$axis`-1:0]; //Sample hit Location
+   logic unsigned [`$sig_fig`-1:0] color_R18U[`$multi_tests`-1:0][`$colors`-1:0]; //Sample hit Location
+   logic 		        hit_valid_R18H[`$multi_tests`-1:0] ;  //Did Sample Hit?
    //DUT OUTPUTS
    
 

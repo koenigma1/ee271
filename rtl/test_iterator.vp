@@ -77,6 +77,9 @@
 //; my $mod_FSM = parameter(Name=>'ModifiedFSM',
 //;                            Val=>'YES', List=>['YES', 'NO'],
 //;                            Doc=>"Use Modified FSM to eliminate a wait state");
+//; my $multi_tests = parameter(Name=>'MultiTests',
+//;                            Val=>2, Min=>1, Step=>1,
+//;                            Doc=>"Number of simultaneous samples tested in parallel");
 //;
 //; # Convert a Fixed Point Number to a Floating
 //; sub unFix {
@@ -135,9 +138,9 @@ module `mname()`
    //Outputs
    output logic signed [`$sig_fig`-1:0] poly_R14S[`$verts`-1:0][`$axis`-1:0], //Micropolygon to Sample Test
    output logic unsigned [`$sig_fig`-1:0] color_R14U[`$colors`-1:0] , //Color of Poly
-   output logic signed [`$sig_fig`-1:0] sample_R14S[1:0], //Sample Location to Be Tested
+   output logic signed [`$sig_fig`-1:0] sample_R14S[`$multi_tests`-1:0][1:0], //Sample Location to Be Tested
    output logic 			isQuad_R14H, //Micropygon is quad
-   output logic 			validSamp_R14H                   //Sample and Micropolygon are Valid
+   output logic 			validSamp_R14H[`$multi_tests`-1:0]                   //Sample and Micropolygon are Valid
    );
    
    
@@ -151,52 +154,66 @@ module `mname()`
    // then instantiate registers for storing these states
    logic signed [`$sig_fig`-1:0] 	next_poly_R14S[`$verts`-1:0][`$axis`-1:0]; 
    logic unsigned  [`$sig_fig`-1:0] next_color_R14U[`$colors`-1:0] ;
-   logic signed [`$sig_fig`-1:0] 	next_sample_R14S[1:0];  
+   logic signed [`$sig_fig`-1:0] 	next_sample_R14S[`$multi_tests`-1:0][1:0];  
    logic 				next_isQuad_R14H;                   
-   logic 				next_validSamp_R14H;                 
+   logic 				next_validSamp_R14H[`$multi_tests`-1:0];                 
    logic 				next_halt_RnnnnL;
    
    
    // Instantiate registers for storing these states
+   //; # poly_R14S 
    //; my $d301 = generate( 'dff3', "d301", 
    //;                        BitWidth=>$sig_fig,
    //;                        ArraySize1=>$verts,
    //;                        ArraySize2=>$axis,
    //;                        PipelineDepth=>1,
    //;                        Retime=>'NO' );
-   `$d301->instantiate()`(
-			  .in(next_poly_R14S) , 
-			  .clk(clk) , .reset(rst), .en(1'b1),
-			  .out(poly_R14S));
-   
+   //; # color_R14S 
    //; my $d302 = generate( 'dff2', "d302", 
    //;                        BitWidth=>$sig_fig,
    //;                        ArraySize1=>$colors,
    //;                        PipelineDepth=>1,
    //;                        Retime=>'NO' );
-   `$d302->instantiate()` (
-			   .in(next_color_R14U) , 
-			   .clk(clk) , .reset(rst), .en(1'b1),
-			   .out(color_R14U));
-   
+   //; # sample_R14S 
    //; my $d303 = generate( 'dff2', "d303", 
    //;                        BitWidth=>$sig_fig,
    //;                        ArraySize1=>2,
    //;                        PipelineDepth=>1,
    //;                        Retime=>'NO' );
-   `$d303->instantiate()` (
-			   .in(next_sample_R14S) , 
-			   .clk(clk) , .reset(rst), .en(1'b1),
-			   .out(sample_R14S));				 
-   
+   //; # validSamp_R14H, isQuad_R14H, halt_RnnnnL 
    //; my $d304 = generate( 'dff', "d304", 
-   //;                        BitWidth=>3,
+   //;                        BitWidth=>1,
    //;                        PipelineDepth=>1,
    //;                        Retime=>'NO' );
-   `$d304->instantiate()` (
-			   .in({next_validSamp_R14H, next_isQuad_R14H, next_halt_RnnnnL}) , 
+   //; my $d304_2 = generate( 'dff', "d304_2", 
+   //;                        BitWidth=>2,
+   //;                        PipelineDepth=>1,
+   //;                        Retime=>'NO' );
+
+   `$d301->instantiate()` (
+			  .in(next_poly_R14S) , 
+			  .clk(clk) , .reset(rst), .en(1'b1),
+			  .out(poly_R14S));
+   
+   `$d302->instantiate()` (
+			   .in(next_color_R14U) , 
 			   .clk(clk) , .reset(rst), .en(1'b1),
-			   .out({validSamp_R14H, isQuad_R14H, halt_RnnnnL}));
+			   .out(color_R14U));
+   `$d304_2->instantiate()` (
+			   .in({ next_isQuad_R14H, next_halt_RnnnnL }) , 
+			   .clk(clk) , .reset(rst), .en(1'b1),
+			   .out({ isQuad_R14H, halt_RnnnnL }));
+   //; for (my $i = 0; $i < $multi_tests; $i++) {
+   `$d303->instantiate()`_`$i` (
+			   .in(next_sample_R14S[`$i`]) , 
+			   .clk(clk) , .reset(rst), .en(1'b1),
+			   .out(sample_R14S[`$i`]));				 
+  
+   `$d304->instantiate()`_`$i` (
+			   .in(next_validSamp_R14H[`$i`]) , 
+			   .clk(clk) , .reset(rst), .en(1'b1),
+			   .out(validSamp_R14H[`$i`]));
+   //; }
    // Instantiate registers for storing these states
    
 
@@ -244,11 +261,11 @@ module `mname()`
    
    
    // define some helper signals
-   logic signed [`$sig_fig`-1:0] 	next_up_samp_R14S[1:0]; //If jump up, next sample
-   logic signed [`$sig_fig`-1:0] 	next_rt_samp_R14S[1:0]; //If jump right, next sample
-   logic 				at_right_edg_R14H;      //Current sample at right edge of bbox?
-   logic 				at_top_edg_R14H;        //Current sample at top edge of bbox?
-   logic 				at_end_box_R14H;        //Current sample at end of bbox?
+   logic signed [`$sig_fig`-1:0] 	next_up_samp_R14S[`$multi_tests`-1:0][1:0]; //If jump up, next sample
+   logic signed [`$sig_fig`-1:0] 	next_rt_samp_R14S[`$multi_tests`-1:0][1:0]; //If jump right, next sample
+   logic 				at_right_edg_R14H[`$multi_tests`-1:0];      //Current sample at right edge of bbox?
+   logic 				at_top_edg_R14H[`$multi_tests`-1:0];        //Current sample at top edge of bbox?
+   logic 				at_end_box_R14H[`$multi_tests`-1:0];        //Current sample at end of bbox?
 
    //////
    ////// First calculate the values of the helper signals using CURRENT STATES
@@ -260,14 +277,13 @@ module `mname()`
    
    ////// PLACE YOUR CODE HERE
 	
-	assign next_up_samp_R14S = '{sample_R14S[1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R14S[0][0]}; 
-	assign next_rt_samp_R14S = '{sample_R14S[1], sample_R14S[0][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
- 	assign at_right_edg_R14H =  (sample_R14S[0] == box_R14S[1][0]); // test sample_x == ur_x
- 	assign at_top_edg_R14H	=  (sample_R14S[1] == box_R14S[1][1]);		// test sample_y == ur_y
-	assign at_end_box_R14H = (sample_R14S[0] == box_R14S[1][0] && sample_R14S[1] == box_R14S[1][1]); // test if up right corner is reached
- 	//assign at_right_edg_R14H = (validPoly_R13H) ? ( sample_R14S[0] == box_R13S[1][0]) : 1'b0; // test sample_x == ur_x
- 	//assign at_top_edg_R14H	= (validPoly_R13H) ? (sample_R14S[1] == box_R13S[1][1]) : 1'b0;		// test sample_y == ur_y
-	//assign at_end_box_R14H = (validPoly_R13H) ? (at_right_edg_R14H == at_top_edg_R14H) : 1'b0; // test if up right corner is reached
+	//; for (my $i=0; $i< $multi_tests; $i++) {
+	    assign next_up_samp_R14S[`$i`] = '{sample_R14S[0][1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R14S[0][0]}; 
+	    assign next_rt_samp_R14S[`$i`] = '{sample_R14S[0][1], sample_R14S[`$i`][0][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+	    assign at_right_edg_R14H[`$i`] =  (sample_R14S[`$i`][0] >= box_R14S[1][0]); // test sample_x == ur_x
+ 	    assign at_top_edg_R14H[`$i`] =  (sample_R14S[`$i`][1] == box_R14S[1][1]);		// test sample_y == ur_y
+	    assign at_end_box_R14H[`$i`] = (at_right_edg_R14H[`$i`] && at_top_edg_R14H[`$i`]); // test if up right corner is reached
+ 	//; }
 	
    
    //////
@@ -280,8 +296,12 @@ module `mname()`
    always_comb begin
       unique case( state_R14H )
         ( WAIT_STATE ): begin
-	   next_sample_R14S    = '{box_R13S[0][1], box_R13S[0][0]}; 
-	   next_validSamp_R14H = 1'b0;
+	//; for (my $i=0; $i< $multi_tests; $i++) {
+	//; # First attempt is to skip samples on 1 dimension only
+	//; # Is this  creating an actual product? If so, may need to restrict to power of 2s...
+	   next_sample_R14S[`$i`]   = '{box_R13S[0][1], box_R13S[0][0] + `$i`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+	   next_validSamp_R14H[`$i`] = 1'b0;
+	//; }
 	   next_isQuad_R14H    = isQuad_R13H;
 	   next_state_R14H     = (validPoly_R13H) ? TEST_STATE : WAIT_STATE;
 	   next_poly_R14S      = poly_R13S;
@@ -290,18 +310,26 @@ module `mname()`
 	   next_halt_RnnnnL    = (validPoly_R13H) ? 1'b0 : 1'b1;
 	end
 	( TEST_STATE ): begin
-		if (at_end_box_R14H)
-			next_sample_R14S =  box_R14S[0] ;
-		else
-			next_sample_R14S = (at_right_edg_R14H) ? next_up_samp_R14S : next_rt_samp_R14S; 
-	  
-		next_validSamp_R14H = 1'b1;
+		if (at_end_box_R14H[`$multi_tests`-1]) begin
+			//; for (my $i=0; $i< $multi_tests; $i++) {
+			//; # Is this  creating an actual product? If so, may need to restrict to power of 2s...
+			next_sample_R14S[`$i`] =  '{box_R14S[0][1], box_R14S[0][0] + `$i`*(subSample_RnnnnU[3:0] << (`$radix`-3))} ;
+			//; }
+		end
+		else begin
+			//; for (my $i=0; $i< $multi_tests; $i++) {
+			next_sample_R14S[`$i`] = (at_right_edg_R14H[0]) ? next_up_samp_R14S[`$i`] : next_rt_samp_R14S[`$i`]; 
+			//; }
+		end
+	   //; for (my $i=0; $i< $multi_tests; $i++) {
+	   next_validSamp_R14H[`$i`] =  (at_right_edg_R14H[`$i`]) ? 1'b0 : 1'b1;
+	   //; }
 	   next_isQuad_R14H    = isQuad_R14H;
-	   next_state_R14H     = (~at_end_box_R14H) ? TEST_STATE : WAIT_STATE;
+	   next_state_R14H     = (~at_end_box_R14H[`$multi_tests`-1]) ? TEST_STATE : WAIT_STATE;
 	   next_poly_R14S      = poly_R14S;
 	   next_color_R14U     = color_R14U;
 	   next_box_R14S       = box_R14S;
-	   next_halt_RnnnnL    = (at_end_box_R14H) ? 1'b1 : 1'b0; 
+	   next_halt_RnnnnL    = (at_end_box_R14H[`$multi_tests`-1]) ? 1'b1 : 1'b0; 
 	end      
       endcase // case ( state_R14H )
       
@@ -323,11 +351,13 @@ module `mname()`
    endproperty
 
    //Check that Proposed Sample is in BBox
-   assert property( rb_lt( rst, next_sample_R14S[0] , next_box_R14S[1][0] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_sample_R14S[0] , next_box_R14S[1][0], next_validSamp_R14H); 
-   assert property( rb_lt( rst, next_sample_R14S[1] , next_box_R14S[1][1] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_sample_R14S[1] , next_box_R14S[1][1], next_validSamp_R14H);
-   assert property( rb_lt( rst, next_box_R14S[0][0] , next_sample_R14S[0] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_box_R14S[0][0] , next_sample_R14S[0], next_validSamp_R14H);
-   assert property( rb_lt( rst, next_box_R14S[0][1] , next_sample_R14S[1] , next_validSamp_R14H )) else $display("%d <= %d | ~ %d", next_box_R14S[0][1] , next_sample_R14S[1], next_validSamp_R14H);
-   //Check that Proposed Sample is in BBox
+   //; for (my $i=0; $i< $multi_tests; $i++) {
+   assert property( rb_lt( rst, next_sample_R14S[`$i`][0] , next_box_R14S[1][0] , next_validSamp_R14H[`$i`] )) else $display("%d <= %d | ~ %d", next_sample_R14S[`$i`][0] , next_box_R14S[1][0], next_validSamp_R14H[`$i`]); 
+   assert property( rb_lt( rst, next_sample_R14S[`$i`][1] , next_box_R14S[1][1] , next_validSamp_R14H[`$i`] )) else $display("%d <= %d | ~ %d", next_sample_R14S[`$i`][1] , next_box_R14S[1][1], next_validSamp_R14H[`$i`]);
+   assert property( rb_lt( rst, next_box_R14S[0][0] , next_sample_R14S[`$i`][0] , next_validSamp_R14H[`$i`] )) else $display("%d <= %d | ~ %d", next_box_R14S[0][0] , next_sample_R14S[`$i`][0], next_validSamp_R14H[`$i`]);
+   assert property( rb_lt( rst, next_box_R14S[0][1] , next_sample_R14S[`$i`][1] , next_validSamp_R14H[`$i`] )) else $display("%d <= %d | ~ %d", next_box_R14S[0][1] , next_sample_R14S[`$i`][1], next_validSamp_R14H[`$i`]);
+   //; }  
+ //Check that Proposed Sample is in BBox
 
    //Error Checking Assertions
 
@@ -386,11 +416,11 @@ module `mname()`
    
    ////// PLACE YOUR CODE HERE
 	
-	assign next_up_samp_R14S = '{sample_R14S[1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R14S[0][0]}; 
-	assign next_rt_samp_R14S = '{sample_R14S[1], sample_R14S[0][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
- 	assign at_right_edg_R14H =  (sample_R14S[0] == box_R14S[1][0]); // test sample_x == ur_x
- 	assign at_top_edg_R14H	=  (sample_R14S[1] == box_R14S[1][1]);		// test sample_y == ur_y
-	assign at_end_box_R14H = (sample_R14S[0] == box_R14S[1][0] && sample_R14S[1] == box_R14S[1][1]); // test if up right corner is reached
+	assign next_up_samp_R14S = '{sample_R14S[0][1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R14S[0][0]}; 
+	assign next_rt_samp_R14S = '{sample_R14S[0][1], sample_R14S[0][0][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+ 	assign at_right_edg_R14H =  (sample_R14S[0][0] == box_R14S[1][0]); // test sample_x == ur_x
+ 	assign at_top_edg_R14H	=  (sample_R14S[0][1] == box_R14S[1][1]);		// test sample_y == ur_y
+	assign at_end_box_R14H = (sample_R14S[0][0] == box_R14S[1][0] && sample_R14S[0][1] == box_R14S[1][1]); // test if up right corner is reached
    
    //////
    ////// Then complete the following combinational logic defining the
@@ -400,9 +430,9 @@ module `mname()`
    ////// COMPLETE THE FOLLOW ALWAYS_COMB BLOCK
    
    always_comb begin
-	if (at_end_box_R14H | (!validSamp_R14H & validPoly_R13H)) begin
-		next_sample_R14S =  box_R13S[0] ;
-                next_validSamp_R14H = validPoly_R13H;
+	if (at_end_box_R14H | (!validSamp_R14H[0] & validPoly_R13H)) begin
+		next_sample_R14S[0] =  box_R13S[0] ;
+                next_validSamp_R14H[0] = validPoly_R13H;
 	   	next_isQuad_R14H    = isQuad_R13H;
 	   	next_poly_R14S      = poly_R13S;
 	   	next_color_R14U     = color_R13U;
@@ -410,7 +440,7 @@ module `mname()`
 	        next_halt_RnnnnL    = (validPoly_R13H & halt_RnnnnL) ? 1'b0 : 1'b1;
         end
 	else begin
-		next_sample_R14S = (at_right_edg_R14H) ? next_up_samp_R14S : next_rt_samp_R14S;  
+		next_sample_R14S[0] = (at_right_edg_R14H) ? next_up_samp_R14S : next_rt_samp_R14S;  
 		next_validSamp_R14H = validSamp_R14H;
 	   	next_isQuad_R14H    = isQuad_R14H;
 	   	next_poly_R14S      = poly_R14S;

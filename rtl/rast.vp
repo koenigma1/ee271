@@ -59,6 +59,11 @@
 //; my $pipes_samp = parameter(Name=>'PipesSamp',
 //;                            Val=>3, Min=>1, Step=>1, 
 //;                            Doc=>"Number of Pipe Stages in sample module");
+//; my $multi_tests = parameter(Name=>'MultiTests',
+//;                            Val=>2, Min=>1, Step=>1,
+//;                            Doc=>"Number of simultaneous samples tested in parallel");
+//;
+    
 
 module `mname()`  
   (
@@ -80,9 +85,9 @@ module `mname()`
    output logic 			halt_RnnnnL,
   
    // Output Signals
-   output logic signed [`$sig_fig`-1:0] hit_R18S[`$axis`-1:0], // Hit Location
-   output logic 			unsigned [`$sig_fig`-1:0] color_R18U[`$colors`-1:0] , // Color of Poly 
-   output logic 			hit_valid_R18H            // Is this a hit?
+   output logic signed [`$sig_fig`-1:0] hit_R18S[`$multi_tests`-1:0][`$axis`-1:0], // Hit Location
+   output logic 			unsigned [`$sig_fig`-1:0] color_R18U[`$multi_tests`-1:0][`$colors`-1:0] , // Color of Poly 
+   output logic 			hit_valid_R18H[`$multi_tests`-1:0]            // Is this a hit?
    );
 
    //Intermediate Signals
@@ -95,14 +100,14 @@ module `mname()`
    logic signed [`$sig_fig`-1:0] 	poly_R14S[`$verts`-1:0][`$axis`-1:0]; //Micropolygon to Sample Test
    logic 				unsigned [`$sig_fig`-1:0]   color_R14U[`$colors`-1:0] ;         // Color of Poly
    logic 				isQuad_R14H;                    //Micropygon is quad
-   logic signed [`$sig_fig`-1:0] 	sample_R14S[1:0];               //Sample Location to Be Tested
-   logic 				validSamp_R14H;                 //Sample and Micropolygon are Valid
+   logic signed [`$sig_fig`-1:0] 	sample_R14S[`$multi_tests`-1:0][1:0];               //Sample Location to Be Tested
+   logic 				validSamp_R14H[`$multi_tests`-1:0];                 //Sample and Micropolygon are Valid
    
-   logic signed [`$sig_fig`-1:0] 	poly_R16S[`$verts`-1:0][`$axis`-1:0]; //Micropolygon to Sample Test
-   logic 				unsigned [`$sig_fig`-1:0]   color_R16U[`$colors`-1:0] ;         //Color of Poly
-   logic 				isQuad_R16H;                    //Micropygon is quad
-   logic signed [`$sig_fig`-1:0] 	sample_R16S[1:0];               //Sample Location to Be Tested
-   logic 				validSamp_R16H;                 //Sample and Micropolygon are Valid
+   logic signed [`$sig_fig`-1:0] 	poly_R16S[`$multi_tests`-1:0][`$verts`-1:0][`$axis`-1:0]; //Micropolygon to Sample Test
+   logic 				unsigned [`$sig_fig`-1:0]   color_R16U[`$multi_tests`-1:0][`$colors`-1:0] ;         //Color of Poly
+   logic 				isQuad_R16H[`$multi_tests`-1:0];                    //Micropygon is quad
+   logic signed [`$sig_fig`-1:0] 	sample_R16S[`$multi_tests`-1:0][1:0];               //Sample Location to Be Tested
+   logic 				validSamp_R16H[`$multi_tests`-1:0];                 //Sample and Micropolygon are Valid
    
    logic [`$sig_fig`-1:0] 		zero;                     //fudge signal to hold zero as a reset value
    logic [127:0] 			big_zero;                 //fudge signal to hold zero as a reset value
@@ -149,7 +154,8 @@ module `mname()`
    //;                        Vertices=>$verts,
    //;                        Axis=>$axis,
    //;                        Colors=>$colors,
-   //;                        PipelineDepth=>$pipes_iter);
+   //;                        PipelineDepth=>$pipes_iter,
+   //;                        MultiTests=>$multi_tests);
    `$test_iterator -> instantiate()` (
 				      .poly_R13S(poly_R13S),
 				      .color_R13U(color_R13U) ,	      
@@ -177,27 +183,8 @@ module `mname()`
    //;                        Axis=>$axis,
    //;                        Colors=>$colors,
    //;                        PipelineDepth=>$pipes_hash);
-   `$hash_jtree -> instantiate()` (
-				   .poly_R14S(poly_R14S),
-				   .color_R14U(color_R14U) ,	      
-				   .isQuad_R14H(isQuad_R14H),
-				   .sample_R14S(sample_R14S),
-				   .validSamp_R14H(validSamp_R14H),
-
-				   .subSample_RnnnnU(subSample_RnnnnU) ,
-      
-				   .clk(clk),
-				   .rst(rst),
-      
-				   .poly_R16S(poly_R16S),
-				   .color_R16U(color_R16U),			
-				   .sample_R16S(sample_R16S),
-				   .validSamp_R16H(validSamp_R16H),
-				   .isQuad_R16H(isQuad_R16H)
-
-				   );
    
-
+   //;
    //; my $sampletest = generate( 'sampletest', "sampletest", 
    //;                        SigFig=>$sig_fig,
    //;                        Radix=>$radix,
@@ -205,19 +192,40 @@ module `mname()`
    //;                        Axis=>$axis,
    //;                        Colors=>$colors,
    //;                        PipelineDepth=>$pipes_samp);
-   `$sampletest -> instantiate()` (   
-				      .poly_R16S(poly_R16S),
-				      .color_R16U(color_R16U),			
-				      .sample_R16S(sample_R16S),
-				      .validSamp_R16H(validSamp_R16H),
-				      .isQuad_R16H(isQuad_R16H),
+   //; for ( my $i = 0 ; $i < $multi_tests ; $i++) {
+   `$hash_jtree -> instantiate()`_`$i` (
+				   .poly_R14S(poly_R14S),
+				   .color_R14U(color_R14U) ,	      
+				   .isQuad_R14H(isQuad_R14H),
+				   .sample_R14S(sample_R14S[`$i`]),
+				   .validSamp_R14H(validSamp_R14H[`$i`]),
+
+				   .subSample_RnnnnU(subSample_RnnnnU) ,
+      
+				   .clk(clk),
+				   .rst(rst),
+      
+				   .poly_R16S(poly_R16S[`$i`]),
+				   .color_R16U(color_R16U[`$i`]),			
+				   .sample_R16S(sample_R16S[`$i`]),
+				   .validSamp_R16H(validSamp_R16H[`$i`]),
+				   .isQuad_R16H(isQuad_R16H[`$i`])
+
+				   );
+
+   `$sampletest -> instantiate()`_`$i` (   
+				      .poly_R16S(poly_R16S[`$i`]),
+				      .color_R16U(color_R16U[`$i`]),			
+				      .sample_R16S(sample_R16S[`$i`]),
+				      .validSamp_R16H(validSamp_R16H[`$i`]),
+				      .isQuad_R16H(isQuad_R16H[`$i`]),
       
 				      .clk(clk),
 				      .rst(rst),
       
-				      .hit_R18S( hit_R18S ),
-				      .color_R18U( color_R18U ),						 
-				      .hit_valid_R18H( hit_valid_R18H ) 
+				      .hit_R18S( hit_R18S[`$i`]),
+				      .color_R18U( color_R18U[`$i`]),						 
+				      .hit_valid_R18H( hit_valid_R18H[`$i`]) 
 				      );
-   
+   //; }
 endmodule

@@ -2,7 +2,7 @@
 if [ $# -lt "2" ]; then
 	echo "usage:"
 	echo "verify <TEST_TAG> <vector_directory> <GENESIS_PARAMS> --include_long"
-	echo "exit"
+	exit
 fi
 
 # FILL VARIABLE 
@@ -92,5 +92,6 @@ tar -czv -f results_$TEST_TAG.tar.gz results_${TEST_TAG} > /dev/null
 
 echo "ALL DONE"
 #rm -rf results_${TEST_TAG}
-
+# Report
+zgrep JJ results_${TEST_TAG}/*
 
