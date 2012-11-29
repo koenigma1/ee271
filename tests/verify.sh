@@ -20,19 +20,19 @@ for VECTOR in ${VECTORS[@]}; do
 	FILE_NAME[$VECTOR]=`echo ${VECTOR##*/}`
 	BASE[$VECTOR]=`echo ${FILE_NAME[$VECTOR]%.*}`
 	PPM[$VECTOR]="${TEST_TAG}_${BASE[$VECTOR]}_hw.ppm"
-	PPM_REF[$VECTOR]=${VECT_DIR}${BASE[$VECTOR]}_ref.ppm
+	PPM_REF[$VECTOR]=${VECT_DIR}/${BASE[$VECTOR]}_ref.ppm
 	LOG[$VECTOR]="${TEST_TAG}_${BASE[$VECTOR]}_sim.log"  
 done
 
 # Build 
 echo "Building with parameters: "
-echo $GEN_PARAM
-make genesis_clean comp GEN_PARAM="$GENESIS_PARAM" >& ${TEST_TAG}_verify_comp.log 
+echo $GENESIS_PARAM
+make genesis_clean comp GEN_PARAM="${GENESIS_PARAM}" >& ${TEST_TAG}_verify_comp.log 
 if [ "$?" -eq "0" ]; then
 	echo "*** SUCCESS"
 else
 	echo "ERROR"
-	echo "See verfy_comp.log for details"
+	echo "See ${TEST_TAG}_verify_comp.log for details"
 	exit -1
 fi
 
@@ -50,9 +50,10 @@ for VECTOR in ${TEST_VECTORS[@]}; do
 	echo -n "Simulating: ${FILE_NAME[$VECTOR]} "
 	echo -n "Simulating: ${FILE_NAME[$VECTOR]}" >> ${TEST_TAG}.log
 	make run RUN="+testname=$VECTOR" >& ${LOG[$VECTOR]}
+	SIM_RES=$?
 	mv sv_out.ppm ${PPM[$VECTOR]}
 	gzip -f ${LOG[$VECTOR]}
-	if [ "$?" -eq "0" ]; then
+	if [ "$SIM_RES" -eq "0" ]; then
 		echo " *** DONE" 
 		echo " *** DONE" >> ${TEST_TAG}.log 
 	else
@@ -69,13 +70,14 @@ echo "Starting Verification" >> ${TEST_TAG}.log
 for VECTOR in ${TEST_VECTORS[@]}; do
 	echo -n "Verifying: ${FILE_NAME[$VECTOR]} "
 	echo -n "Verifying: ${FILE_NAME[$VECTOR]}" >> ${TEST_TAG}.log
-	diff ${PPM_REF[$VECTOR]} ${PPM[$VECTOR]} >& /dev/null
+	diff ${PPM_REF[$VECTOR]} ${PPM[$VECTOR]} >> ${TEST_TAG}.log
 	if [ "$?" -eq "0" ]; then 
 		echo "*** PASSED" 
 		echo "*** PASSED" >> ${TEST_TAG}.log
 	else
 		echo " *** FAILED"
 		echo " *** FAILED" >> ${TEST_TAG}.log
+		echo "Differences between ${PPM_REF[$VECTOR]} ${PPM[$VECTOR]}" >> ${TEST_TAG}.log
 	fi
 done
 
