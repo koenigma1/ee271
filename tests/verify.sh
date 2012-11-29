@@ -39,7 +39,7 @@ fi
 # Perform tests
 echo "TEST_TAG: ${TEST_TAG}"
 echo "TEST_TAG: ${TEST_TAG}" > ${TEST_TAG}.log
-if [ "$4" == "-include_long" ]; then
+if [ "$4" == "--include_long" ]; then
 	TEST_VECTORS=${VECTORS[@]}
 else
 	TEST_VECTORS=${SHORT_VECTORS[@]}
