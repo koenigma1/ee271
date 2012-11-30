@@ -106,6 +106,9 @@ int rastBBox_bbox_check( int   v0_x,     //uPoly
         #undef _MAX_VAL
         #undef _MAX_PER_AXIS
 
+  // back-face culling test
+  valid = (((v1_x-v0_x) * (v2_y-v0_y)) - ((v2_x-v0_x) * (v1_y-v0_y))) <= 0;
+
   //
   //Copy Past C++ Bounding Box Function ****END****
   //

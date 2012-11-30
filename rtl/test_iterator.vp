@@ -400,7 +400,7 @@ module `mname()`
    ////// COMPLETE THE FOLLOW ALWAYS_COMB BLOCK
    
    always_comb begin
-	if (at_end_box_R14H | (!validSamp_R14H & validPoly_R13H)) begin
+	if (at_end_box_R14H | !validSamp_R14H) begin
 		next_sample_R14S =  box_R13S[0] ;
                 next_validSamp_R14H = validPoly_R13H;
 	   	next_isQuad_R14H    = isQuad_R13H;
