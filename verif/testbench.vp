@@ -143,6 +143,7 @@ module `mname()`
 	//;                        Vertices=>$verts,
 	//;                        Axis=>$axis,
 	//;                        Colors=>$colors,
+	//;                        MultiTests=>$multi_tests,
 	//;                        Filename=>"f_image.ppm");
     `$zbuff -> instantiate()` (
       .clk(clk),                // Clock 
@@ -152,9 +153,9 @@ module `mname()`
       .subSample_RnnnnU(subSample_RnnnnU),   // Output: SubSample_Interval
       .ss_w_lg2_RnnnnS(ss_w_lg2_RnnnnS),
       
-     .hit_R18S(hit_R18S[0]),             //Sample Location and depth
-      .color_R18U(color_R18U[0]),         //Color of Sample Hit
-      .hit_valid_R18H(hit_valid_R18H[0])  //Is sample hit valid
+     .hit_R18S(hit_R18S),             //Sample Location and depth
+      .color_R18U(color_R18U),         //Color of Sample Hit
+      .hit_valid_R18H(hit_valid_R18H)  //Is sample hit valid
       );
 
    
@@ -199,20 +200,21 @@ module `mname()`
 	//;                        Axis=>$axis,
 	//;                        Colors=>$colors,
 	//;                        PipelineDepth=>$delay_r2z_sb,
+	//;                        MultiTests=>$multi_tests,
 	//;                        Filename=>"sb_log/smpl_sb.log");
    `$smpl_sb -> instantiate()` (
-	 		 .poly_R16S(`$dut_obj->get_instance_path()`.poly_R16S[0]),           // 4 Sets X,Y Fixed Point Values
-			 .color_R16U(`$dut_obj->get_instance_path()`.color_R16U[0]),         // Polygon Color
-			 .isQuad_R16H(`$dut_obj->get_instance_path()`.isQuad_R16H[0]),       // Is Poly Quad?
-		 	 .validSamp_R16H(`$dut_obj->get_instance_path()`.validSamp_R16H[0]), 
-			 .sample_R16S(`$dut_obj->get_instance_path()`.sample_R16S[0]),       // Will change for JIT -todo
+	 		 .poly_R16S(`$dut_obj->get_instance_path()`.poly_R16S),           // 4 Sets X,Y Fixed Point Values
+			 .color_R16U(`$dut_obj->get_instance_path()`.color_R16U),         // Polygon Color
+			 .isQuad_R16H(`$dut_obj->get_instance_path()`.isQuad_R16H),       // Is Poly Quad?
+		 	 .validSamp_R16H(`$dut_obj->get_instance_path()`.validSamp_R16H), 
+			 .sample_R16S(`$dut_obj->get_instance_path()`.sample_R16S),       // Will change for JIT -todo
 			      
   			 .clk(clk),                // Clock 
  			 .rst(rst),                // Reset
 			 
-			 .hit_R18S(hit_R18S[0]),
-			 .color_R18U(color_R18U[0]),         // Polygon Color			      
-			 .hit_valid_R18H(hit_valid_R18H[0]) 
+			 .hit_R18S(hit_R18S),
+			 .color_R18U(color_R18U),         // Polygon Color			      
+			 .hit_valid_R18H(hit_valid_R18H) 
 								   
 			  );
 			  

@@ -97,6 +97,7 @@
 	//;                        PipesIter=>$pipes_iter,
 	//;                        PipesHash=>$pipes_hash,
 	//;                        PipesSamp=>$pipes_samp,
+	//;                        MultiTests=>$multi_tests,
 	//;                        DUT_obj=>$dut_obj);
    `$bench_obj -> instantiate()`
      (
