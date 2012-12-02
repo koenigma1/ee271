@@ -185,7 +185,7 @@ module `mname()`
    //;                        BitWidth=>1,
    //;                        PipelineDepth=>1,
    //;                        Retime=>'NO' );
-   //; my $d304_2 = generate( 'dff', "d304_2", 
+   //; my $d304_b = generate( 'dff', "d304_b", 
    //;                        BitWidth=>2,
    //;                        PipelineDepth=>1,
    //;                        Retime=>'NO' );
@@ -199,7 +199,7 @@ module `mname()`
 			   .in(next_color_R14U) , 
 			   .clk(clk) , .reset(rst), .en(1'b1),
 			   .out(color_R14U));
-   `$d304_2->instantiate()` (
+   `$d304_b->instantiate()` (
 			   .in({ next_isQuad_R14H, next_halt_RnnnnL }) , 
 			   .clk(clk) , .reset(rst), .en(1'b1),
 			   .out({ isQuad_R14H, halt_RnnnnL }));
@@ -280,7 +280,7 @@ module `mname()`
 	//; for (my $i=0; $i< $multi_tests; $i++) {
 	    assign next_up_samp_R14S[`$i`] = '{sample_R14S[0][1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R14S[0][0] + `$i`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
 	    assign next_rt_samp_R14S[`$i`] = '{sample_R14S[0][1], sample_R14S[`$i`][0][`$sig_fig`-1:0] + `$multi_tests`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
-	    assign at_right_edg_R14H[`$i`] =  (sample_R14S[`$i`][0] >= box_R14S[1][0]); // test sample_x == ur_x
+	    assign at_right_edg_R14H[`$i`] =  (sample_R14S[`$i`][0] == box_R14S[1][0]); // test sample_x == ur_x
  	    assign at_top_edg_R14H[`$i`] =  (sample_R14S[`$i`][1] == box_R14S[1][1]);		// test sample_y == ur_y
 	    assign at_end_box_R14H[`$i`] = (at_right_edg_R14H[`$i`] && at_top_edg_R14H[`$i`]); // test if up right corner is reached
  	//; }
@@ -329,7 +329,8 @@ module `mname()`
 			end
 		end
 	   //; for (my $i=0; $i< $multi_tests; $i++) {
-	   next_validSamp_R14H[`$i`] =  (next_sample_R14S[`$i`][0] >= box_R14S[1][0]) ? 1'b0 : 1'b1;
+	   //next_validSamp_R14H[`$i`] =  (next_sample_R14S[`$i`][0] > box_R14S[1][0]) ? 1'b0 : 1'b1;
+	   	next_validSamp_R14H[`$i`] =  1'b1;
 	   //; }
 	   next_isQuad_R14H    = isQuad_R14H;
 	   next_state_R14H     = (at_end_box_R14H != `$multi_tests`'d0) ? WAIT_STATE : TEST_STATE ;
