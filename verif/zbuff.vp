@@ -134,7 +134,7 @@ module `mname()`
    logic unsigned [`$fb_l2`-1:0]  y_ind[`$multi_tests`-1:0];
    logic unsigned [`$ss_l2`-1:0]  x_ss_ind[`$multi_tests`-1:0];
    logic unsigned [`$ss_l2`-1:0]  y_ss_ind[`$multi_tests`-1:0];
-   logic unsigned [`$sig_fig`-1:0] depth;
+   logic unsigned [`$sig_fig`-1:0] depth[`$multi_tests`-1:0];
    logic unsigned [`$sig_fig`-1:0] color[`$multi_tests`-1:0][`$colors`-1:0];
 
    int unsigned     x_max ;

@@ -386,7 +386,17 @@ module `mname()`
     * Main simulation task
     *****************************************/
    initial begin
-      rst = 1'b1;    
+      	//	$monitor($time, " x_ind %x | y_ind %x | x_ss_ind %x | y_ss_ind %x | depth %x | color1 %x | color2 %x | color3 %x", 
+	//		top_rast.testbench.zbuff.x_ind[0] ,   //Hit Loc. X
+        //                top_rast.testbench.zbuff.y_ind[0] ,   //Hit Loc. Y
+        //                top_rast.testbench.zbuff.x_ss_ind[0] ,  // Hit loc X
+        //                top_rast.testbench.zbuff.y_ss_ind[0] ,  // Hit Loc Y
+        //                top_rast.testbench.zbuff.depth[0] , //actually a uint
+        //                top_rast.testbench.zbuff.color[0][0] , //actually a ushort
+        //                top_rast.testbench.zbuff.color[0][1] , //actually a ushort
+        //                top_rast.testbench.zbuff.color[0][2]  //actually a ushort
+	//		);
+	rst = 1'b1;    
       `$rast_driver->iname()`.InitLines();
       
       $display("time=%10t ************** Loading Arguments *****************", $time);
