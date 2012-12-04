@@ -121,8 +121,9 @@
 //; my $pipe_depth = parameter(Name=>'PipelineDepth',
 //;                            Val=>3, Min=>1, Step=>1, 
 //;                            Doc=>"How many pipe stages are in this block");
-
-
+//; my $sig_fig_r  = parameter(Name=>'SigFigReduced',
+//;                            Val=>17, Min=>1, Step=>1, 
+//;                            Doc=>"Bits in color and position.");
 
 module `mname()`
   (
@@ -146,7 +147,7 @@ module `mname()`
    output logic 			unsigned [`$sig_fig`-1:0] color_R13U[`$colors`-1:0] , // Color of Poly
    output logic 			isQuad_R13H, // Is Poly Quad?
    output logic signed [`$sig_fig`-1:0] box_R13S[1:0][1:0], // 2 Sets X,Y Fixed Point Values  
-   output logic 			validPoly_R13H                  // Valid Data for Operation
+   output logic 			validPoly_R13H,                  // Valid Data for Operation
    );
    
    
@@ -161,7 +162,8 @@ module `mname()`
    logic [1:0][1:0] 			clamp_R10H;                  // signal require clamping
    logic [1:0][1:0] 			invalidate_R10H;             // polygon out of bounds
    logic signed [`$sig_fig`-1:0] 	out_box_R10S[1:0][1:0];      // bounds for output
-   logic signed [`$sig_fig`-1:0]        poly_shift_R10H[3:0];        // terms for culling equation
+   logic signed [`$sig_fig_r`-1:0]        poly_shift_R10H[3:0];        // terms for culling equation
+   logic signed [`2*$sig_fig_r`-1:0]        cross_product_R10H;          // result of the cross product arithmetic
    logic 				culling_R10H;                // backface culling
    logic 				outvalid_R10H;               // output is valid
    //R10 Signals
@@ -374,18 +376,18 @@ module `mname()`
 			   clamp_R10H[1][1] ? screen_RnnnnS[1] : rounded_box_R10S[1][1];
    end
    //Select Between Screen Bounds and Rounded Bounds
-   
+  
    // do back-face culling
    always_comb begin
-     poly_shift_R10H[0] = poly_R10S[1][0] - poly_R10S[0][0];
-     poly_shift_R10H[1] = poly_R10S[2][1] - poly_R10S[0][1];
-     poly_shift_R10H[2] = poly_R10S[2][0] - poly_R10S[0][0];
-     poly_shift_R10H[3] = poly_R10S[1][1] - poly_R10S[0][1];
-   end
-   always_comb begin
-     culling_R10H = ((poly_shift_R10H[0] * poly_shift_R10H[1]) - (poly_shift_R10H[2] * poly_shift_R10H[3])) <= 0;
-   end
+     poly_shift_R10H[0] = signed'(poly_R10S[1][0][`$sig_fig_r-1`:0]) - signed'(poly_R10S[0][0][`$sig_fig_r-1`:0]);
+     poly_shift_R10H[1] = signed'(poly_R10S[2][1][`$sig_fig_r-1`:0]) - signed'(poly_R10S[0][1][`$sig_fig_r-1`:0]);
+     poly_shift_R10H[2] = signed'(poly_R10S[2][0][`$sig_fig_r-1`:0]) - signed'(poly_R10S[0][0][`$sig_fig_r-1`:0]);
+     poly_shift_R10H[3] = signed'(poly_R10S[0][1][`$sig_fig_r-1`:0]) - signed'(poly_R10S[1][1][`$sig_fig_r-1`:0]);
 
+     cross_product_R10H = (poly_shift_R10H[0] * poly_shift_R10H[1]) + (poly_shift_R10H[2] * poly_shift_R10H[3]) ;
+
+     culling_R10H = cross_product_R10H <= 0;
+   end
    assign  outvalid_R10H = ~( | invalidate_R10H ) & validPoly_R10H & culling_R10H;
 
    
@@ -430,9 +432,8 @@ module `mname()`
 			      .in({isQuad_R10H, outvalid_R10H}) , 
 			      .clk(clk) , .reset(rst), .en(halt_RnnnnL),
 			      .out({isQuad_R13H_retime, validPoly_R13H_retime}));
+ 
    //Flop Clamped Box to R13_retime with retiming registers
-   
-   
    
    //Flop R13_retime to R13 with fixed registers
    //; my $d_bbx_f1 = generate( 'dff3', "d_bbx_f1", 
