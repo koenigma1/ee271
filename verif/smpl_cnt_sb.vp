@@ -165,7 +165,7 @@ module `mname()`
 					   int'( { 24'h000000 , jitter_y_RnnS} ) ,
 					   s_j_x_RnnS,
 					   s_j_y_RnnS	  ) ) begin
-	    assert( 0 ) else $error( "time=%10t ERROR: Hash Check in Rast Failed", $time) ;
+	    //assert( 0 ) else $error( "time=%10t ERROR: Hash Check in Rast Failed", $time) ;
 	 end
       end
    end
@@ -215,7 +215,7 @@ module `mname()`
 
 	    $fwrite( file , "\n" );
 	 
-	    assert( 0 ) else $error( "time=%10t ERROR: RAST Check Failed", $time) ;
+	    //assert( 0 ) else $error( "time=%10t ERROR: RAST Check Failed", $time) ;
 	 end
       end 
    end
