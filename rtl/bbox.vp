@@ -147,7 +147,7 @@ module `mname()`
    output logic 			unsigned [`$sig_fig`-1:0] color_R13U[`$colors`-1:0] , // Color of Poly
    output logic 			isQuad_R13H, // Is Poly Quad?
    output logic signed [`$sig_fig`-1:0] box_R13S[1:0][1:0], // 2 Sets X,Y Fixed Point Values  
-   output logic 			validPoly_R13H,                  // Valid Data for Operation
+   output logic 			validPoly_R13H                  // Valid Data for Operation
    );
    
    
