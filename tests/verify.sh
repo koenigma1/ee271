@@ -94,4 +94,5 @@ echo "ALL DONE"
 #rm -rf results_${TEST_TAG}
 # Report
 zgrep JJ results_${TEST_TAG}/*
+zgrep JJ results_${TEST_TAG}/* >> results_${TEST_TAG}/${TEST_TAG}.log 
 
