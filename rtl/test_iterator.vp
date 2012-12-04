@@ -449,7 +449,7 @@ module `mname()`
 		//; for (my $i=0; $i< $multi_tests; $i++) {
 		//; # First attempt is to skip samples on 1 dimension only
 		//; # Is this  creating an actual product? If so, may need to restrict to power of 2s...
-	if ((at_end_box_R14H != `$multi_tests`'b0) | (!validSamp_R14H[`$i`] & validPoly_R13H)) begin
+	if ((at_end_box_R14H != `$multi_tests`'b0) | !validSamp_R14H[`$i`]) begin
 		next_sample_R14S[`$i`]   = '{box_R13S[0][1], box_R13S[0][0] + `$i`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
 		next_validSamp_R14H[`$i`] = validPoly_R13H;
 	   	next_isQuad_R14H    = isQuad_R13H;

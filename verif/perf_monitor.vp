@@ -141,7 +141,7 @@ module `mname()`
 
 	 cycle_count++ ;
 	 
-	 if (sample_count % 100000 == 0) begin
+	 if (sample_count % 100000 == 0 && sample_count != 0) begin
 		$display("time=%10t \t%10d samples processed, %10d of them hit", $time, sample_count, sample_hit_count);
 	 end
       end
