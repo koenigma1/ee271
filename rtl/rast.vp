@@ -60,7 +60,7 @@
 //;                            Val=>2, Min=>1, Step=>1, 
 //;                            Doc=>"Number of Pipe Stages in sample module");
 //; my $multi_tests = parameter(Name=>'MultiTests',
-//;                            Val=>2, Min=>1, Step=>1,
+//;                            Val=>4, Min=>1, Step=>1,
 //;                            Doc=>"Number of simultaneous samples tested in parallel");
 //;
     

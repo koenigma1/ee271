@@ -429,10 +429,14 @@ module `mname()`
    
    ////// PLACE YOUR CODE HERE
 	
+
 	//; for (my $i=0; $i< $multi_tests; $i++) {
-	    assign next_up_samp_R14S[`$i`] = '{sample_R14S[0][1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R14S[0][0] + `$i`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
-	    //assign next_rt_samp_R14S[`$i`] = '{sample_R14S[0][1], sample_R14S[`$i`][0][`$sig_fig`-1:0] + `$multi_tests`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
-	    assign next_rt_samp_R14S[`$i`] = '{sample_R14S[0][1], sample_R14S[`$i`][0][`$sig_fig`-1:0] + `$multi_tests`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+            //; if ($i % 2 == 0) {
+	      assign next_up_samp_R14S[`$i`] = '{sample_R14S[`$i`][1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-2)), box_R14S[0][0] }; 
+            //; } else {
+              assign next_up_samp_R14S[`$i`] = '{sample_R14S[`$i`][1][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-2)), box_R14S[0][0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+            //; }
+	    assign next_rt_samp_R14S[`$i`] = '{sample_R14S[`$i`][1], sample_R14S[`$i`][0][`$sig_fig`-1:0] + (subSample_RnnnnU[3:0] << (`$radix`-2))}; 
 	    assign at_right_edg_R14H[`$i`] =  (sample_R14S[`$i`][0] == box_R14S[1][0]); // test sample_x == ur_x
  	    assign at_top_edg_R14H[`$i`] =  (sample_R14S[`$i`][1] == box_R14S[1][1]);		// test sample_y == ur_y
 	    assign at_end_box_R14H[`$i`] = (at_right_edg_R14H[`$i`] && at_top_edg_R14H[`$i`]); // test if up right corner is reached
@@ -450,7 +454,15 @@ module `mname()`
 		//; # First attempt is to skip samples on 1 dimension only
 		//; # Is this  creating an actual product? If so, may need to restrict to power of 2s...
 	if ((at_end_box_R14H != `$multi_tests`'b0) | !validSamp_R14H[`$i`]) begin
-		next_sample_R14S[`$i`]   = '{box_R13S[0][1], box_R13S[0][0] + `$i`*(subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+                //; if ($i == 0) {
+		  next_sample_R14S[`$i`]   = '{box_R13S[0][1], box_R13S[0][0]}; 
+                //; } elsif ($i == 1) {
+		  next_sample_R14S[`$i`]   = '{box_R13S[0][1], box_R13S[0][0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+                //; } elsif ($i == 2) {
+		  next_sample_R14S[`$i`]   = '{box_R13S[0][1] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R13S[0][0]}; 
+                //; } elsif ($i == 3) {
+		  next_sample_R14S[`$i`]   = '{box_R13S[0][1] + (subSample_RnnnnU[3:0] << (`$radix`-3)), box_R13S[0][0] + (subSample_RnnnnU[3:0] << (`$radix`-3))}; 
+                //; }
 		next_validSamp_R14H[`$i`] = validPoly_R13H;
 	   	next_isQuad_R14H    = isQuad_R13H;
 	   	next_poly_R14S      = poly_R13S;
