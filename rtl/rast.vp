@@ -54,10 +54,10 @@
 //;                            Val=>1, Min=>1, Step=>1, 
 //;                            Doc=>"Number of Pipe Stages in iter module");
 //; my $pipes_hash = parameter(Name=>'PipesHash',
-//;                            Val=>2, Min=>1, Step=>1, 
+//;                            Val=>1, Min=>1, Step=>1, 
 //;                            Doc=>"Number of pipe stages in hash module");
 //; my $pipes_samp = parameter(Name=>'PipesSamp',
-//;                            Val=>3, Min=>1, Step=>1, 
+//;                            Val=>2, Min=>1, Step=>1, 
 //;                            Doc=>"Number of Pipe Stages in sample module");
 //; my $multi_tests = parameter(Name=>'MultiTests',
 //;                            Val=>2, Min=>1, Step=>1,
