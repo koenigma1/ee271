@@ -11,6 +11,7 @@ VECT_DIR=$2
 GENESIS_PARAM=$3
 VECTORS=(`ls ${VECT_DIR}/*.dat -1 | tr '\n' ' '`)
 SHORT_VECTORS=(`ls ${VECT_DIR}/*00_sv.dat -1 | tr '\n' ' '` `ls ${VECT_DIR}/*short.dat -1 | tr '\n' ' '`) 
+LONG_VECTORS=(`ls ${VECT_DIR}/*01_sv.dat -1 | tr '\n' ' '` `ls ${VECT_DIR}/*02_sv.dat -1 | tr '\n' ' '` `ls ${VECT_DIR}/*04_sv.dat -1 | tr '\n' ' '`) 
 declare -A FILE_NAME
 declare -A BASE 
 declare -A PPM 
@@ -40,7 +41,7 @@ fi
 echo "TEST_TAG: ${TEST_TAG}"
 echo "TEST_TAG: ${TEST_TAG}" > ${TEST_TAG}.log
 if [ "$4" == "--include_long" ]; then
-	TEST_VECTORS=${VECTORS[@]}
+	TEST_VECTORS=${LONG_VECTORS[@]}
 else
 	TEST_VECTORS=${SHORT_VECTORS[@]}
 fi
